@@ -19,7 +19,7 @@ namespace Othello
         const int pad = 1;
 
         // Maximum amount of moves that the engine will look ahead
-        static int maxDepth = 5;
+        static int maxDepth = 5; // Problem with depth 4 ATM
 
         // board side size
         static int sides = tileSize * gridSize + gridSize * pad * 2;
@@ -29,7 +29,8 @@ namespace Othello
 
         bool bot_p1 = false;
         bool bot_p2 = false;
-        int botGen = 3;
+        int bot1Gen = 3;
+        int bot2Gen = 3;
 
 
         bool showAvailiableMoves = true;
@@ -168,7 +169,7 @@ namespace Othello
         {
             if (isPlayer1 && bot_p1)
             {
-                switch (botGen)
+                switch (bot1Gen)
                 {
                     case 1:
                         BotEngine01();
@@ -183,7 +184,7 @@ namespace Othello
             }
             else if (!isPlayer1 && bot_p2)
             {
-                switch (botGen)
+                switch (bot2Gen)
                 {
                     case 1:
                         BotEngine01();
@@ -259,7 +260,11 @@ namespace Othello
 
         public PostionEvaluationResult Minimax(Board gamePosition, int depth, double alpha, double beta, bool maximizingplayer, int player)
         {
-            if (depth == 0 || gamePosition.moves == gridSize * gridSize) // If no moves are allowed send back
+            int oppositePlayer = player == 1 ? 2 : 1;
+            var moves1 = gamePosition.GetAvailableMoves(player);
+            var moves2 = gamePosition.GetAvailableMoves(oppositePlayer);
+
+            if (depth == 0 || gamePosition.moves == gridSize * gridSize || !moves1.Any() || !moves2.Any()) // If no valid moves exist then return position
             {
                 nPositions++;
                 PostionEvaluationResult result = new PostionEvaluationResult();
@@ -270,16 +275,16 @@ namespace Othello
             PostionEvaluationResult evaluation = new PostionEvaluationResult();
             if (maximizingplayer)
             {
-                var moves = gamePosition.GetAvailableMoves(player);
+                //var moves = gamePosition.GetAvailableMoves(player);
 
                 if (depth == maxDepth)
                 {
-                    var newMoves = ManualFirstDepth(gamePosition, moves, player);
-                    moves.Clear();
-                    moves = newMoves;
+                    var newMoves = ManualFirstDepth(gamePosition, moves1, player);
+                    moves1.Clear();
+                    moves1 = newMoves;
                 }
                 double maxEval = double.MinValue;
-                foreach (var move in moves)
+                foreach (var move in moves1)
                 {
                     // Make a copy of the board
                     Board generationBoard = new Board(gamePosition); // This will copy the board data
@@ -304,17 +309,16 @@ namespace Othello
             else
             {
                 double minEval = double.MaxValue;
-                int oppositePlayer = player == 1 ? 2 : 1;
 
-                var moves = gamePosition.GetAvailableMoves(oppositePlayer);
+                //var moves2 = gamePosition.GetAvailableMoves(oppositePlayer);
 
                 if (depth == maxDepth)
                 {
-                    var newMoves = ManualFirstDepth(gamePosition, moves, oppositePlayer);
-                    moves.Clear();
-                    moves = newMoves;
+                    var newMoves = ManualFirstDepth(gamePosition, moves2, oppositePlayer);
+                    moves2.Clear();
+                    moves2 = newMoves;
                 }
-                foreach (var move in moves)
+                foreach (var move in moves2)
                 {
                     Board generationBoard = new Board(gamePosition); // This will copy the board data
                                                                      // Make the "move" on the board

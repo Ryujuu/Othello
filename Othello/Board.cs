@@ -91,9 +91,9 @@ namespace Othello
                 Eval -= 10;
 
             var antimoves = GetAvailableMoves(antiplayer).Count;
-            Eval -= antiplayer;
+            Eval -= antimoves;
             Eval += GetAvailableMoves(player).Count;
-            if (GetAvailableMoves(antiplayer).Count == 0)
+            if (antimoves == 0)
                 Eval += 100;
             return Eval;
 
