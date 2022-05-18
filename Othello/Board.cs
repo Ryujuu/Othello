@@ -12,7 +12,7 @@ namespace Othello
         public static int gridSize = 8;
         public int[,] position = new int[gridSize, gridSize];
         private List<Position> possiblePositions = new List<Position>(); // Save postitions that are outside of 3x3 around newly changed pieces
-        public int moves = 4;
+        public int moves = 0;
 
         public Board()
         {
@@ -38,6 +38,8 @@ namespace Othello
             AddNeighbours(L, S);
             AddNeighbours(S, S);
             AddNeighbours(L, L);
+
+            moves += 4;
         }
 
         public List<Position> MakeMove(Position move, int player)
@@ -51,8 +53,8 @@ namespace Othello
                     position[tile.x, tile.y] = player;
                 }
                 AddNeighbours(move.x, move.y);
+                moves++;
             }
-            moves++;
             return tilesToChange;
         }
 

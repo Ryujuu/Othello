@@ -8,7 +8,7 @@ namespace Othello
 
         public int nPositions = 0;
 
-        PictureBox[,] board = new PictureBox[gridSize, gridSize];
+        PictureBox[,] visualBoard = new PictureBox[gridSize, gridSize];
 
         // size of the squares sides
         const int tileSize = 40;
@@ -19,7 +19,7 @@ namespace Othello
         const int pad = 1;
 
         // Maximum amount of moves that the engine will look ahead
-        static int maxDepth = 5; // Problem with depth 4 ATM
+        static int maxDepth = 4; // Problem with depth 4 ATM
 
         // board side size
         static int sides = tileSize * gridSize + gridSize * pad * 2;
@@ -32,8 +32,11 @@ namespace Othello
         int bot1Gen = 3;
         int bot2Gen = 3;
 
+        RandomBot randomBot;
+        BiasedBot biasedBot;
 
-        bool showAvailiableMoves = true;
+
+        public bool showAvailiableMoves = true;
 
         public int CurrentState { get { return isPlayer1 ? 1 : 2; } }
         public int OppositeState { get { return isPlayer1 ? 2 : 1; } }
@@ -51,8 +54,7 @@ namespace Othello
 
             gameBoard.PlaceStartingMoves();
 
-            DisplayBoard();
-            ShowAvailiableMoves(gameBoard.GetAvailableMoves(CurrentState));
+            DisplayBoard(gameBoard.GetAvailableMoves(CurrentState));
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -81,9 +83,9 @@ namespace Othello
                         Tag = 0,
                         SizeMode = PictureBoxSizeMode.StretchImage
                     };
-                    board[j, i] = piece;
-                    flowLayoutPanel1.Controls.Add(board[j, i]);
-                    board[j, i].Click += delegate
+                    visualBoard[j, i] = piece;
+                    flowLayoutPanel1.Controls.Add(visualBoard[j, i]);
+                    visualBoard[j, i].Click += delegate
                     {
                         Click(x, y);
                     };
@@ -93,17 +95,17 @@ namespace Othello
 
         public void Click(int x, int y)
         {
-            if (gameBoard.position[x, y] != 0) // if tile is already black/white then do not proceed
+            if (gameBoard.position[x, y] != 0) // if tile is already placed here then do not proceed
                 return;
 
-            var tilesToChange = gameBoard.MakeMove(new Position(x, y), CurrentState);
+            var tilesToChange = gameBoard.MakeMove(new Position(x, y), CurrentState); // Maybe check if move is legal before making it
 
             if (tilesToChange.Any())
             {
                 HideAvailiableMoves();
                 SwitchPlayer();
                 DisplayScore();
-                DisplayBoard();
+                
                 label4.Text = nPositions.ToString();
             }
             else
@@ -114,7 +116,7 @@ namespace Othello
             var availiableMoves = gameBoard.GetAvailableMoves(CurrentState);
             if (!availiableMoves.Any())
             {
-                isPlayer1 = !isPlayer1;
+                SwitchPlayer();
                 RunBots();
 
                 availiableMoves = gameBoard.GetAvailableMoves(CurrentState);
@@ -124,18 +126,16 @@ namespace Othello
                     return;
                 }
             }
-
-            // TODO: Replace IsBoardFull() with a method in gameBoard
-            if (gameBoard.IsBoardFull())
+            else if (gameBoard.IsBoardFull())
             {
-                DisplayVictory(); // This updates the GUI so leave it
+                DisplayVictory();
             }
-            else if (showAvailiableMoves)
-            {
-                ShowAvailiableMoves(availiableMoves); // This updates the GUI too
-            }
+            
+            DisplayBoard(availiableMoves);
             RunBots();
         }
+
+
         public bool CanClickSpot(int x, int y)
         {
             if (gameBoard.GetAffectedDiscs(x, y, CurrentState).Any())
@@ -143,7 +143,9 @@ namespace Othello
             else
                 return false;
         }
-        public void DisplayBoard()
+
+
+        public void DisplayBoard(List<Position> availableMoves)
         {
             for (int x = 0; x < gridSize; x++)
             {
@@ -152,16 +154,24 @@ namespace Othello
                     switch (gameBoard.position[x, y])
                     {
                         case 1:
-                            board[x, y].Image = Resources.Black;
+                            visualBoard[x, y].Image = Resources.Black;
                             break;
                         case 2:
-                            board[x, y].Image = Resources.White;
+                            visualBoard[x, y].Image = Resources.White;
                             break;
                         default:
                             break;
                     }
-                    board[x, y].Tag = gameBoard.position[x, y];
+                    visualBoard[x, y].Tag = gameBoard.position[x, y];
                 }
+            }
+            if (showAvailiableMoves)
+            {
+                ShowAvailiableMoves(availableMoves); // This updates the GUI too
+            }
+            else
+            {
+                HideAvailiableMoves();
             }
         }
 
@@ -203,9 +213,9 @@ namespace Othello
         {
             Task.Run(async () =>
             {
-                board[x, y].BackColor = Color.Red;
+                visualBoard[x, y].BackColor = Color.Red;
                 await Task.Delay(300);
-                board[x, y].BackColor = Color.DarkGreen;
+                visualBoard[x, y].BackColor = Color.DarkGreen;
             });
         }
 
@@ -217,7 +227,7 @@ namespace Othello
 
         public void HideAvailiableMoves()
         {
-            foreach (PictureBox tile in board)
+            foreach (PictureBox tile in visualBoard)
             {
                 if ((int)tile.Tag == 0)
                 {
@@ -228,17 +238,10 @@ namespace Othello
 
         public void ShowAvailiableMoves(List<Position> availiableMoves)
         {
-            // TODO: This method should take in a list of positions to change, the check for if the next player can play should occur in the gameBoard
-
             foreach (var move in availiableMoves)
             {
-                board[move.x, move.y].Image = Resources.Moves;
+                visualBoard[move.x, move.y].Image = Resources.Moves;
             }
-        }
-        public class PostionEvaluationResult
-        {
-            public Position? coordinates;
-            public double score;
         }
 
         public List<Position> ManualFirstDepth(Board gamePosition, List<Position> moves, int player)
@@ -275,7 +278,6 @@ namespace Othello
             PostionEvaluationResult evaluation = new PostionEvaluationResult();
             if (maximizingplayer)
             {
-                //var moves = gamePosition.GetAvailableMoves(player);
 
                 if (depth == maxDepth)
                 {
@@ -289,10 +291,19 @@ namespace Othello
                     // Make a copy of the board
                     Board generationBoard = new Board(gamePosition); // This will copy the board data
                     // Make the "move" on the board
+
                     generationBoard.MakeMove(move, player);
 
-                    PostionEvaluationResult eval = Minimax(generationBoard, depth - 1, alpha, beta, false, player);
-
+                    PostionEvaluationResult eval;
+                    var availiableMoves = generationBoard.GetAvailableMoves(oppositePlayer); // Does this maybe exist on row 262?
+                    if (availiableMoves.Any())
+                    {
+                        eval = Minimax(generationBoard, depth - 1, alpha, beta, false, player);
+                    }
+                    else
+                    {
+                        eval = Minimax(generationBoard, depth - 1, alpha, beta, true, player);
+                    }
                     if (maxEval < eval.score)
                     {
                         evaluation.coordinates = move;
@@ -310,7 +321,6 @@ namespace Othello
             {
                 double minEval = double.MaxValue;
 
-                //var moves2 = gamePosition.GetAvailableMoves(oppositePlayer);
 
                 if (depth == maxDepth)
                 {
@@ -325,7 +335,17 @@ namespace Othello
 
                     generationBoard.MakeMove(move, oppositePlayer);
 
-                    var eval = Minimax(generationBoard, depth - 1, alpha, beta, true, player);
+                    PostionEvaluationResult eval;
+                    var availiableMoves = generationBoard.GetAvailableMoves(player);
+                    if (availiableMoves.Any())
+                    {
+                        eval = Minimax(generationBoard, depth - 1, alpha, beta, true, player);
+                    }
+                    else
+                    {
+                        eval = Minimax(generationBoard, depth - 1, alpha, beta, false, player);
+                    }
+
                     if (minEval > eval.score)
                     {
                         evaluation.coordinates = move;
@@ -456,18 +476,6 @@ namespace Othello
             }
             else
                 HideAvailiableMoves();
-        }
-    }
-
-    public class Position // TODO: Maybe extract this to its own class, just because its easier to find that way
-    {
-        public int x;
-        public int y;
-
-        public Position(int x, int y)
-        {
-            this.x = x;
-            this.y = y;
         }
     }
 }
