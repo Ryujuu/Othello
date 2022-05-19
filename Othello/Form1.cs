@@ -18,9 +18,6 @@ namespace Othello
         // space between squares
         const int pad = 1;
 
-        // Maximum amount of moves that the engine will look ahead
-        static int maxDepth = 4; // Problem with depth 4 ATM
-
         // board side size
         static int sides = tileSize * gridSize + gridSize * pad * 2;
 
@@ -110,18 +107,28 @@ namespace Othello
                 ErrorFlash(x, y);
                 return;
             }
-
-            HideAvailiableMoves(); // hide previously available moves and update them later after we made the new move
             gameBoard.MakeMove(new Position(x, y), CurrentState); // makes the move on the gameboard
+            PreformAfterMove();
+            CheckIfNoMovesLeft();
+
+            if (bot_p1 && isPlayer1 || bot_p2 && !isPlayer1)
+                RunBot();
+        }
+
+        private void PreformAfterMove()
+        {
+            HideAvailiableMoves(); // hide previously available moves and update them later after we made the new move
             DisplayBoard(); // display the new postion on the screen
             SwitchPlayer(); // change players
             DisplayScore(); // displays the number of pieces each player has on the board
             label4.Text = nPositions.ToString(); // show the amount of postions that the ai went through
             if (showAvailiableMoves) // if the option to see moves is activated then display them
             {
-                ShowAvailiableMoves(gameBoard.GetAvailableMoves(CurrentState)); 
+                ShowAvailiableMoves(gameBoard.GetAvailableMoves(CurrentState));
             }
-
+        }
+        private void CheckIfNoMovesLeft()
+        {
             if (gameBoard.moves == 64) // this would indicate that the board is full and therefore someone has won
             {
                 DisplayVictory();
@@ -140,8 +147,7 @@ namespace Othello
                 }
             }
         }
-
-        public void DisplayBoard()
+        private void DisplayBoard()
         {
             for (int x = 0; x < gridSize; x++)
             {
@@ -163,9 +169,10 @@ namespace Othello
             }
         }
 
-        private void RunBots()
+        private void RunBot()
         {
-            if (isPlayer1 && bot_p1)
+            Thread.Sleep(300);
+            if (isPlayer1)
             {
                 switch (bot1Gen)
                 {
@@ -180,7 +187,7 @@ namespace Othello
                         break;
                 }
             }
-            else if (!isPlayer1 && bot_p2)
+            else if (!isPlayer1)
             {
                 switch (bot2Gen)
                 {
@@ -195,6 +202,10 @@ namespace Othello
                         break;
                 }
             }
+            PreformAfterMove();
+            DisplayBoard();
+            if (bot_p1 && isPlayer1 || bot_p2 && !isPlayer1)
+                RunBot();
         }
 
         private void ErrorFlash(int x, int y)
@@ -268,13 +279,13 @@ namespace Othello
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
             bot_p2 = checkBox1.Checked;
-            RunBots();
+            RunBot();
         }
 
         private void checkBox2_CheckedChanged(object sender, EventArgs e)
         {
             bot_p1 = checkBox2.Checked;
-            RunBots();
+            RunBot();
         }
 
         private void checkBox3_CheckedChanged_1(object sender, EventArgs e)
