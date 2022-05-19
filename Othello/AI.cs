@@ -11,6 +11,16 @@ namespace Othello
         public int nPositions = 0;
         static int maxDepth = 4;
 
+        public void Run(Board gameBoard, int currentState)
+        {
+            //Maybe block enemy moves
+            nPositions = 0;
+            var move = Minimax(gameBoard, maxDepth, double.MinValue, double.MaxValue, true, currentState);
+            if (move.coordinates == null) return;
+
+            gameBoard.MakeMove(move.coordinates, currentState);
+        }
+
         public List<Position> ManualFirstDepth(Board gamePosition, List<Position> moves, int player)
         {
             List<PostionEvaluationResult> bestToWorstMoves = new List<PostionEvaluationResult>();
@@ -24,8 +34,6 @@ namespace Othello
                 bestToWorstMoves.Add(postion1);
             }
             return bestToWorstMoves.OrderByDescending(x => x.score).Select(y => y.coordinates).ToList();
-
-
         }
 
         public PostionEvaluationResult Minimax(Board gamePosition, int depth, double alpha, double beta, bool maximizingplayer, int player)

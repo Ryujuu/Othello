@@ -29,11 +29,12 @@ namespace Othello
 
         bool bot_p1 = false;
         bool bot_p2 = false;
-        int bot1Gen = 3;
-        int bot2Gen = 3;
+        int bot1Gen = 1;
+        int bot2Gen = 1;
 
-        RandomBot randomBot;
-        BiasedBot biasedBot;
+        RandomBot randomBot = new RandomBot();
+        BiasedBot biasedBot = new BiasedBot();
+        AI aI = new AI();
 
 
         public bool showAvailiableMoves = true;
@@ -54,7 +55,11 @@ namespace Othello
 
             gameBoard.PlaceStartingMoves();
 
-            DisplayBoard(gameBoard.GetAvailableMoves(CurrentState));
+            DisplayBoard();
+            if (showAvailiableMoves) // if the option to see moves is activated then display them
+            {
+                ShowAvailiableMoves(gameBoard.GetAvailableMoves(CurrentState));
+            }
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -87,7 +92,8 @@ namespace Othello
                     flowLayoutPanel1.Controls.Add(visualBoard[j, i]);
                     visualBoard[j, i].Click += delegate
                     {
-                        Click(x, y);
+                        if (!bot_p1 && isPlayer1 || !bot_p2 && !isPlayer1)
+                            Click(x, y);
                     };
                 }
             }
@@ -95,57 +101,47 @@ namespace Othello
 
         public void Click(int x, int y)
         {
+            var affectedDiscs = gameBoard.GetAffectedDiscs(x, y, CurrentState); // Get the affected discs to see if move is legal
+
             if (gameBoard.position[x, y] != 0) // if tile is already placed here then do not proceed
                 return;
-
-            var tilesToChange = gameBoard.MakeMove(new Position(x, y), CurrentState); // Maybe check if move is legal before making it
-
-            if (tilesToChange.Any())
-            {
-                HideAvailiableMoves();
-                SwitchPlayer();
-                DisplayScore();
-                
-                label4.Text = nPositions.ToString();
-            }
-            else
+            if (!affectedDiscs.Any()) // if there are no discs that get turned then give indication and jump out of method
             {
                 ErrorFlash(x, y);
+                return;
             }
 
-            var availiableMoves = gameBoard.GetAvailableMoves(CurrentState);
-            if (!availiableMoves.Any())
+            HideAvailiableMoves(); // hide previously available moves and update them later after we made the new move
+            gameBoard.MakeMove(new Position(x, y), CurrentState); // makes the move on the gameboard
+            DisplayBoard(); // display the new postion on the screen
+            SwitchPlayer(); // change players
+            DisplayScore(); // displays the number of pieces each player has on the board
+            label4.Text = nPositions.ToString(); // show the amount of postions that the ai went through
+            if (showAvailiableMoves) // if the option to see moves is activated then display them
+            {
+                ShowAvailiableMoves(gameBoard.GetAvailableMoves(CurrentState)); 
+            }
+
+            if (gameBoard.moves == 64) // this would indicate that the board is full and therefore someone has won
+            {
+                DisplayVictory();
+                return;
+            }
+            var availiableMoves = gameBoard.GetAvailableMoves(CurrentState); // get the available moves for the new position
+            if (!availiableMoves.Any()) // if there are no moves for the player
             {
                 SwitchPlayer();
-                RunBots();
 
                 availiableMoves = gameBoard.GetAvailableMoves(CurrentState);
-                if (!availiableMoves.Any())
+                if (!availiableMoves.Any()) // if there are still no possible moves then someone has won
                 {
                     DisplayVictory();
                     return;
                 }
             }
-            else if (gameBoard.IsBoardFull())
-            {
-                DisplayVictory();
-            }
-            
-            DisplayBoard(availiableMoves);
-            RunBots();
         }
 
-
-        public bool CanClickSpot(int x, int y)
-        {
-            if (gameBoard.GetAffectedDiscs(x, y, CurrentState).Any())
-                return true;
-            else
-                return false;
-        }
-
-
-        public void DisplayBoard(List<Position> availableMoves)
+        public void DisplayBoard()
         {
             for (int x = 0; x < gridSize; x++)
             {
@@ -165,14 +161,6 @@ namespace Othello
                     visualBoard[x, y].Tag = gameBoard.position[x, y];
                 }
             }
-            if (showAvailiableMoves)
-            {
-                ShowAvailiableMoves(availableMoves); // This updates the GUI too
-            }
-            else
-            {
-                HideAvailiableMoves();
-            }
         }
 
         private void RunBots()
@@ -182,13 +170,13 @@ namespace Othello
                 switch (bot1Gen)
                 {
                     case 1:
-                        BotEngine01();
+                        randomBot.Run(gameBoard, CurrentState);
                         break;
                     case 2:
-                        BotEngine02();
+                        biasedBot.Run(gameBoard, CurrentState);
                         break;
                     case 3:
-                        BotEngine03();
+                        aI.Run(gameBoard, CurrentState);
                         break;
                 }
             }
@@ -197,13 +185,13 @@ namespace Othello
                 switch (bot2Gen)
                 {
                     case 1:
-                        BotEngine01();
+                        randomBot.Run(gameBoard, CurrentState);
                         break;
                     case 2:
-                        BotEngine02();
+                        biasedBot.Run(gameBoard, CurrentState);
                         break;
                     case 3:
-                        BotEngine03();
+                        aI.Run(gameBoard, CurrentState);
                         break;
                 }
             }
@@ -242,183 +230,6 @@ namespace Othello
             {
                 visualBoard[move.x, move.y].Image = Resources.Moves;
             }
-        }
-
-        public List<Position> ManualFirstDepth(Board gamePosition, List<Position> moves, int player)
-        {
-            List<PostionEvaluationResult> bestToWorstMoves = new List<PostionEvaluationResult>();
-            foreach (var move in moves)
-            {
-                Board firstGenBoard = new Board(gamePosition);
-                firstGenBoard.MakeMove(move, player);
-                PostionEvaluationResult postion1 = new PostionEvaluationResult();
-                postion1.score = firstGenBoard.EvaluatePosition(player);
-                postion1.coordinates = move;
-                bestToWorstMoves.Add(postion1);
-            }
-            return bestToWorstMoves.OrderByDescending(x => x.score).Select(y => y.coordinates).ToList();
-
-
-        }
-
-        public PostionEvaluationResult Minimax(Board gamePosition, int depth, double alpha, double beta, bool maximizingplayer, int player)
-        {
-            int oppositePlayer = player == 1 ? 2 : 1;
-            var moves1 = gamePosition.GetAvailableMoves(player);
-            var moves2 = gamePosition.GetAvailableMoves(oppositePlayer);
-
-            if (depth == 0 || gamePosition.moves == gridSize * gridSize || !moves1.Any() || !moves2.Any()) // If no valid moves exist then return position
-            {
-                nPositions++;
-                PostionEvaluationResult result = new PostionEvaluationResult();
-                result.score = gamePosition.EvaluatePosition(player);
-                return result;
-            }
-
-            PostionEvaluationResult evaluation = new PostionEvaluationResult();
-            if (maximizingplayer)
-            {
-
-                if (depth == maxDepth)
-                {
-                    var newMoves = ManualFirstDepth(gamePosition, moves1, player);
-                    moves1.Clear();
-                    moves1 = newMoves;
-                }
-                double maxEval = double.MinValue;
-                foreach (var move in moves1)
-                {
-                    // Make a copy of the board
-                    Board generationBoard = new Board(gamePosition); // This will copy the board data
-                    // Make the "move" on the board
-
-                    generationBoard.MakeMove(move, player);
-
-                    PostionEvaluationResult eval;
-                    var availiableMoves = generationBoard.GetAvailableMoves(oppositePlayer); // Does this maybe exist on row 262?
-                    if (availiableMoves.Any())
-                    {
-                        eval = Minimax(generationBoard, depth - 1, alpha, beta, false, player);
-                    }
-                    else
-                    {
-                        eval = Minimax(generationBoard, depth - 1, alpha, beta, true, player);
-                    }
-                    if (maxEval < eval.score)
-                    {
-                        evaluation.coordinates = move;
-                        maxEval = eval.score;
-                    }
-                    alpha = Math.Max(alpha, eval.score);
-                    if (beta <= alpha)
-                        break;
-                }
-
-                evaluation.score = maxEval;
-                return evaluation;
-            }
-            else
-            {
-                double minEval = double.MaxValue;
-
-
-                if (depth == maxDepth)
-                {
-                    var newMoves = ManualFirstDepth(gamePosition, moves2, oppositePlayer);
-                    moves2.Clear();
-                    moves2 = newMoves;
-                }
-                foreach (var move in moves2)
-                {
-                    Board generationBoard = new Board(gamePosition); // This will copy the board data
-                                                                     // Make the "move" on the board
-
-                    generationBoard.MakeMove(move, oppositePlayer);
-
-                    PostionEvaluationResult eval;
-                    var availiableMoves = generationBoard.GetAvailableMoves(player);
-                    if (availiableMoves.Any())
-                    {
-                        eval = Minimax(generationBoard, depth - 1, alpha, beta, true, player);
-                    }
-                    else
-                    {
-                        eval = Minimax(generationBoard, depth - 1, alpha, beta, false, player);
-                    }
-
-                    if (minEval > eval.score)
-                    {
-                        evaluation.coordinates = move;
-                        minEval = eval.score;
-                    }
-                    beta = Math.Min(beta, eval.score);
-                    if (beta <= alpha)
-                        break;
-                }
-                evaluation.score = minEval;
-                return evaluation;
-            }
-        }
-
-        public void BotEngine03()
-        {
-            Task.Run(async () =>
-            {
-                //Maybe block enemy moves
-                nPositions = 0;
-                var move = Minimax(gameBoard, maxDepth, double.MinValue, double.MaxValue, true, CurrentState);
-                if (move.coordinates == null) return;
-
-                await Task.Delay(1);
-                label1.Invoke(() =>
-                {
-                    Click(move.coordinates.x, move.coordinates.y);
-                });
-            });
-        }
-
-
-        public void BotEngine02()
-        {
-
-            Task.Run(async () =>
-            {
-                //Maybe block enemy moves
-
-
-
-                var moves = gameBoard.GetAvailableMoves(CurrentState);
-                var move = moves.OrderByDescending(x =>
-                gameBoard.GetAffectedDiscs(x.x, x.y, CurrentState).Count *
-                (x.x == 0 || x.x == 7 ? 3 : 1) *
-                (x.y == 0 || x.y == 7 ? 3 : 1) *
-                (x.x == 1 || x.x == 6 ? 0.3 : 1) *
-                (x.y == 1 || x.y == 6 ? 0.3 : 1) *
-                (x.x > 1 || x.x < 6 ? 1.5 : 1) *
-                (x.y > 1 || x.y < 6 ? 1.5 : 1)).FirstOrDefault();
-
-                if (move == null) return;
-                await Task.Delay(1);
-                label1.Invoke(() =>
-                {
-                    Click(move.x, move.y);
-                });
-            });
-        }
-        public void BotEngine01()
-        {
-            Task.Run(async () =>
-            {
-                var moves = gameBoard.GetAvailableMoves(CurrentState);
-                var move = moves.OrderByDescending(x => Guid.NewGuid()).FirstOrDefault();
-
-                if (move == null) return;
-                await Task.Delay(1);
-                label1.Invoke(() =>
-                {
-                    Click(move.x, move.y);
-                });
-            });
         }
 
         public void DisplayScore()
@@ -471,8 +282,7 @@ namespace Othello
             showAvailiableMoves = checkBox3.Checked;
             if (showAvailiableMoves)
             {
-                var availiableMoves = gameBoard.GetAvailableMoves(CurrentState);
-                ShowAvailiableMoves(availiableMoves);
+                ShowAvailiableMoves(gameBoard.GetAvailableMoves(CurrentState));
             }
             else
                 HideAvailiableMoves();

@@ -137,17 +137,7 @@ namespace Othello
             }
             return tiles;
         }
-        public bool IsBoardFull()
-        {
-            foreach (var tile in position)
-            {
-                if (tile == 0)
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
+        
         public List<Position> GetAffectedDiscs(int x, int y, int nextTag)
         {
             var allAffectedDiscs = new List<Position>();

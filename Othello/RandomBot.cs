@@ -14,6 +14,7 @@ namespace Othello
             var move = moves.OrderByDescending(x => Guid.NewGuid()).FirstOrDefault();
 
             if (move == null) return;
+
             gameBoard.MakeMove(move, CurrentState);
         }
     }

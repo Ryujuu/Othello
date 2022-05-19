@@ -21,6 +21,7 @@ namespace Othello
             (x.y > 1 || x.y < 6 ? 1.5 : 1)).FirstOrDefault();
 
             if (move == null) return;
+
             gameBoard.MakeMove(move, CurrentState);
         }
     }
