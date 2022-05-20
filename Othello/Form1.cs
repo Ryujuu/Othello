@@ -24,10 +24,10 @@ namespace Othello
         // keep track of who's turn it is
         bool isPlayer1 = true;
 
-        bool bot_p1 = false;
-        bool bot_p2 = false;
-        int bot1Gen = 1;
-        int bot2Gen = 1;
+        bool bot = false;
+        int botGen = 1;
+
+        bool thereIsAWinner = false;
 
         RandomBot randomBot = new RandomBot();
         BiasedBot biasedBot = new BiasedBot();
@@ -89,14 +89,14 @@ namespace Othello
                     flowLayoutPanel1.Controls.Add(visualBoard[j, i]);
                     visualBoard[j, i].Click += delegate
                     {
-                        if (!bot_p1 && isPlayer1 || !bot_p2 && !isPlayer1)
+                        if (!bot && isPlayer1)
                             Click(x, y);
                     };
                 }
             }
         }
 
-        public void Click(int x, int y)
+        private void Click(int x, int y)
         {
             var affectedDiscs = gameBoard.GetAffectedDiscs(x, y, CurrentState); // Get the affected discs to see if move is legal
 
@@ -111,8 +111,10 @@ namespace Othello
             PreformAfterMove();
             CheckIfNoMovesLeft();
 
-            if (bot_p1 && isPlayer1 || bot_p2 && !isPlayer1)
+            if (!isPlayer1)
+            {
                 RunBot();
+            }
         }
 
         private void PreformAfterMove()
@@ -171,36 +173,24 @@ namespace Othello
 
         private void RunBot()
         {
-            Thread.Sleep(300);
-            if (isPlayer1)
+          // switch (botGen)
+          // {
+          //     case 1:
+          //         randomBot.Run(gameBoard, CurrentState);
+          //         break;
+          //     case 2:
+          //         biasedBot.Run(gameBoard, CurrentState);
+          //         break;
+          //     case 3:
+          //         aI.Run(gameBoard, CurrentState);
+          //         break;
+          // }
+            aI.Run(gameBoard, CurrentState);
+            PreformAfterMove();
+            CheckIfNoMovesLeft();
+            if (!gameBoard.GetAvailableMoves(CurrentState).Any())
             {
-                switch (bot1Gen)
-                {
-                    case 1:
-                        randomBot.Run(gameBoard, CurrentState);
-                        break;
-                    case 2:
-                        biasedBot.Run(gameBoard, CurrentState);
-                        break;
-                    case 3:
-                        aI.Run(gameBoard, CurrentState);
-                        break;
-                }
-            }
-            else if (!isPlayer1)
-            {
-                switch (bot2Gen)
-                {
-                    case 1:
-                        randomBot.Run(gameBoard, CurrentState);
-                        break;
-                    case 2:
-                        biasedBot.Run(gameBoard, CurrentState);
-                        break;
-                    case 3:
-                        aI.Run(gameBoard, CurrentState);
-                        break;
-                }
+                aI.Run(gameBoard, CurrentState);
             }
             PreformAfterMove();
             DisplayBoard();
@@ -268,6 +258,7 @@ namespace Othello
                 label1.Text = "Black has won!";
                 label1.Show();
             }
+            thereIsAWinner = true;
         }
 
         public void ChangeState(int x, int y, int state)
@@ -278,14 +269,10 @@ namespace Othello
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
-            bot_p2 = checkBox1.Checked;
-            RunBot();
         }
 
         private void checkBox2_CheckedChanged(object sender, EventArgs e)
         {
-            bot_p1 = checkBox2.Checked;
-            RunBot();
         }
 
         private void checkBox3_CheckedChanged_1(object sender, EventArgs e)
