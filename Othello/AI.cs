@@ -9,7 +9,7 @@ namespace Othello
     internal class AI
     {
         public int nPositions = 0;
-        static int maxDepth = 4;
+        static int maxDepth = 6;
 
         public void Run(Board gameBoard, int currentState)
         {

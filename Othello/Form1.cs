@@ -6,8 +6,6 @@ namespace Othello
     {
         Board gameBoard = new Board();
 
-        public int nPositions = 0;
-
         PictureBox[,] visualBoard = new PictureBox[gridSize, gridSize];
 
         // size of the squares sides
@@ -27,6 +25,8 @@ namespace Othello
         bool blackBot = false;
         bool whiteBot = false;
 
+        int genBlack = 3;
+        int genWhite = 3;
 
         RandomBot randomBot = new RandomBot();
         BiasedBot biasedBot = new BiasedBot();
@@ -108,7 +108,11 @@ namespace Othello
             }
             gameBoard.MakeMove(new Position(x, y), CurrentState); // makes the move on the gameboard
             PreformAfterMove();
-            CheckIfNoMovesLeft();
+            Update();
+            if (IsGameOver())
+                return;
+            RunBots();
+            label6.Text = gameBoard.EvaluatePosition(CurrentState).ToString();
         }
 
         private void PreformAfterMove()
@@ -117,18 +121,18 @@ namespace Othello
             DisplayBoard(); // display the new postion on the screen
             SwitchPlayer(); // change players
             DisplayScore(); // displays the number of pieces each player has on the board
-            label4.Text = nPositions.ToString(); // show the amount of postions that the ai went through
+            label4.Text = aI.nPositions.ToString(); // show the amount of postions that the ai went through
             if (showAvailiableMoves) // if the option to see moves is activated then display them
             {
                 ShowAvailiableMoves(gameBoard.GetAvailableMoves(CurrentState));
             }
         }
-        private void CheckIfNoMovesLeft()
+        private bool IsGameOver()
         {
             if (gameBoard.moves == 64) // this would indicate that the board is full and therefore someone has won
             {
                 DisplayVictory();
-                return;
+                return true;
             }
             var availiableMoves = gameBoard.GetAvailableMoves(CurrentState); // get the available moves for the new position
             if (!availiableMoves.Any()) // if there are no moves for the player
@@ -139,11 +143,12 @@ namespace Othello
                 if (!availiableMoves.Any()) // if there are still no possible moves then someone has won
                 {
                     DisplayVictory();
-                    return;
+                    return true;
                 }
-                ShowAvailiableMoves(gameBoard.GetAvailableMoves(CurrentState));
             }
+            return false;
         }
+
         private void DisplayBoard()
         {
             for (int x = 0; x < gridSize; x++)
@@ -228,7 +233,46 @@ namespace Othello
             }
         }
 
-        
+        private void RunBots()
+        {
+            if (blackBot && isPlayer1)
+            {
+                switch (genBlack)
+                {
+                    case 1:
+                        randomBot.Run(gameBoard, CurrentState);
+                        break;
+                    case 2:
+                        biasedBot.Run(gameBoard, CurrentState);
+                        break;
+                    case 3:
+                        aI.Run(gameBoard, CurrentState);
+                        break;
+                }
+                PreformAfterMove();
+                if (IsGameOver())
+                    return;
+            }
+            else if (whiteBot && !isPlayer1)
+            {
+                switch (genBlack)
+                {
+                    case 1:
+                        randomBot.Run(gameBoard, CurrentState);
+                        break;
+                    case 2:
+                        biasedBot.Run(gameBoard, CurrentState);
+                        break;
+                    case 3:
+                        aI.Run(gameBoard, CurrentState);
+                        break;
+                }
+                PreformAfterMove();
+                if (IsGameOver())
+                    return;
+            }
+        }
+
 
         private void ShowMoves_CheckedChanged(object sender, EventArgs e)
         {
@@ -244,11 +288,20 @@ namespace Othello
         private void BlackBot_CheckedChanged(object sender, EventArgs e)
         {
             blackBot = BlackBot.Checked;
+            if (isPlayer1)
+            {
+                RunBots();
+            }
+
         }
 
         private void WhiteBot_CheckedChanged(object sender, EventArgs e)
         {
             whiteBot = WhiteBot.Checked;
+            if (!isPlayer1)
+            {
+                RunBots();
+            }
         }
     }
 }

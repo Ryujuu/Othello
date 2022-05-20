@@ -38,6 +38,7 @@
             this.BlackBot = new System.Windows.Forms.CheckBox();
             this.label3 = new System.Windows.Forms.Label();
             this.WhiteBot = new System.Windows.Forms.CheckBox();
+            this.label6 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -53,14 +54,14 @@
             // label1
             // 
             this.label1.BackColor = System.Drawing.Color.Transparent;
-            this.label1.Font = new System.Drawing.Font("Showcard Gothic", 15.75F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point);
+            this.label1.Font = new System.Drawing.Font("Snap ITC", 18F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point);
             this.label1.ForeColor = System.Drawing.Color.White;
             this.label1.Location = new System.Drawing.Point(514, 178);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(192, 40);
             this.label1.TabIndex = 4;
             this.label1.Text = "Winner";
-            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // pictureBox1
             // 
@@ -123,8 +124,6 @@
             // 
             this.BlackBot.AutoSize = true;
             this.BlackBot.BackColor = System.Drawing.Color.Transparent;
-            this.BlackBot.Checked = true;
-            this.BlackBot.CheckState = System.Windows.Forms.CheckState.Checked;
             this.BlackBot.Font = new System.Drawing.Font("Snap ITC", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.BlackBot.ForeColor = System.Drawing.Color.White;
             this.BlackBot.Location = new System.Drawing.Point(518, 461);
@@ -150,8 +149,6 @@
             // 
             this.WhiteBot.AutoSize = true;
             this.WhiteBot.BackColor = System.Drawing.Color.Transparent;
-            this.WhiteBot.Checked = true;
-            this.WhiteBot.CheckState = System.Windows.Forms.CheckState.Checked;
             this.WhiteBot.Font = new System.Drawing.Font("Snap ITC", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.WhiteBot.ForeColor = System.Drawing.Color.White;
             this.WhiteBot.Location = new System.Drawing.Point(518, 38);
@@ -162,12 +159,22 @@
             this.WhiteBot.UseVisualStyleBackColor = false;
             this.WhiteBot.CheckedChanged += new System.EventHandler(this.WhiteBot_CheckedChanged);
             // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(523, 310);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(38, 15);
+            this.label6.TabIndex = 17;
+            this.label6.Text = "label6";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ActiveCaption;
             this.ClientSize = new System.Drawing.Size(776, 521);
+            this.Controls.Add(this.label6);
             this.Controls.Add(this.WhiteBot);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.BlackBot);
@@ -200,5 +207,6 @@
         private CheckBox BlackBot;
         private Label label3;
         private CheckBox WhiteBot;
+        private Label label6;
     }
 }

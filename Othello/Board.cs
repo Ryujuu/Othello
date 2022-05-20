@@ -96,7 +96,7 @@ namespace Othello
             Eval -= antimoves;
             Eval += GetAvailableMoves(player).Count;
             if (antimoves == 0)
-                Eval += 100;
+                Eval += 20;
             return Eval;
 
             // Use weight table to calculate 
