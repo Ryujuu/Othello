@@ -11,7 +11,7 @@ namespace Othello
         PictureBox[,] visualBoard = new PictureBox[gridSize, gridSize];
 
         // size of the squares sides
-        const int tileSize = 40;
+        const int tileSize = 60;
         // number of rows and collums
         static int gridSize = Board.gridSize;
 
@@ -24,10 +24,9 @@ namespace Othello
         // keep track of who's turn it is
         bool isPlayer1 = true;
 
-        bool bot = false;
-        int botGen = 1;
+        bool blackBot = false;
+        bool whiteBot = false;
 
-        bool thereIsAWinner = false;
 
         RandomBot randomBot = new RandomBot();
         BiasedBot biasedBot = new BiasedBot();
@@ -44,6 +43,7 @@ namespace Othello
             InitializeComponent();
 
             label1.Hide();
+            pictureBox1.BackColor = Color.Transparent;
             pictureBox1.Image = Resources.Black;
             flowLayoutPanel1.Size = new Size(sides, sides);
             flowLayoutPanel1.BackColor = Color.Black;
@@ -89,8 +89,7 @@ namespace Othello
                     flowLayoutPanel1.Controls.Add(visualBoard[j, i]);
                     visualBoard[j, i].Click += delegate
                     {
-                        if (!bot && isPlayer1)
-                            Click(x, y);
+                        Click(x, y);
                     };
                 }
             }
@@ -110,11 +109,6 @@ namespace Othello
             gameBoard.MakeMove(new Position(x, y), CurrentState); // makes the move on the gameboard
             PreformAfterMove();
             CheckIfNoMovesLeft();
-
-            if (!isPlayer1)
-            {
-                RunBot();
-            }
         }
 
         private void PreformAfterMove()
@@ -147,6 +141,7 @@ namespace Othello
                     DisplayVictory();
                     return;
                 }
+                ShowAvailiableMoves(gameBoard.GetAvailableMoves(CurrentState));
             }
         }
         private void DisplayBoard()
@@ -169,33 +164,6 @@ namespace Othello
                     visualBoard[x, y].Tag = gameBoard.position[x, y];
                 }
             }
-        }
-
-        private void RunBot()
-        {
-          // switch (botGen)
-          // {
-          //     case 1:
-          //         randomBot.Run(gameBoard, CurrentState);
-          //         break;
-          //     case 2:
-          //         biasedBot.Run(gameBoard, CurrentState);
-          //         break;
-          //     case 3:
-          //         aI.Run(gameBoard, CurrentState);
-          //         break;
-          // }
-            aI.Run(gameBoard, CurrentState);
-            PreformAfterMove();
-            CheckIfNoMovesLeft();
-            if (!gameBoard.GetAvailableMoves(CurrentState).Any())
-            {
-                aI.Run(gameBoard, CurrentState);
-            }
-            PreformAfterMove();
-            DisplayBoard();
-            if (bot_p1 && isPlayer1 || bot_p2 && !isPlayer1)
-                RunBot();
         }
 
         private void ErrorFlash(int x, int y)
@@ -258,32 +226,29 @@ namespace Othello
                 label1.Text = "Black has won!";
                 label1.Show();
             }
-            thereIsAWinner = true;
         }
 
-        public void ChangeState(int x, int y, int state)
-        {
-            gameBoard.position[x, y] = state;
-        }
+        
 
-
-        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        private void ShowMoves_CheckedChanged(object sender, EventArgs e)
         {
-        }
-
-        private void checkBox2_CheckedChanged(object sender, EventArgs e)
-        {
-        }
-
-        private void checkBox3_CheckedChanged_1(object sender, EventArgs e)
-        {
-            showAvailiableMoves = checkBox3.Checked;
+            showAvailiableMoves = ShowMoves.Checked;
             if (showAvailiableMoves)
             {
                 ShowAvailiableMoves(gameBoard.GetAvailableMoves(CurrentState));
             }
             else
                 HideAvailiableMoves();
+        }
+
+        private void BlackBot_CheckedChanged(object sender, EventArgs e)
+        {
+            blackBot = BlackBot.Checked;
+        }
+
+        private void WhiteBot_CheckedChanged(object sender, EventArgs e)
+        {
+            whiteBot = WhiteBot.Checked;
         }
     }
 }
