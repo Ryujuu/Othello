@@ -89,7 +89,8 @@ namespace Othello
                     flowLayoutPanel1.Controls.Add(visualBoard[j, i]);
                     visualBoard[j, i].Click += delegate
                     {
-                        Click(x, y);
+                        if ((blackBot && !isPlayer1) || (whiteBot && isPlayer1) || (!whiteBot && !blackBot)) // Click still registers somehow?! Fix this later!! Player can still make a move on the bots turn
+                            Click(x, y);
                     };
                 }
             }
@@ -111,8 +112,11 @@ namespace Othello
             Update();
             if (IsGameOver())
                 return;
-            RunBots();
-            label6.Text = gameBoard.EvaluatePosition(CurrentState).ToString();
+            SwitchPlayer();
+            if (blackBot && isPlayer1)
+                RunBlackBot();
+            else if (whiteBot && !isPlayer1)
+                RunWhiteBot();
         }
 
         private void PreformAfterMove()
@@ -126,6 +130,7 @@ namespace Othello
             {
                 ShowAvailiableMoves(gameBoard.GetAvailableMoves(CurrentState));
             }
+            label6.Text = gameBoard.EvaluatePosition(CurrentState).ToString();
         }
         private bool IsGameOver()
         {
@@ -137,9 +142,7 @@ namespace Othello
             var availiableMoves = gameBoard.GetAvailableMoves(CurrentState); // get the available moves for the new position
             if (!availiableMoves.Any()) // if there are no moves for the player
             {
-                SwitchPlayer();
-
-                availiableMoves = gameBoard.GetAvailableMoves(CurrentState);
+                availiableMoves = gameBoard.GetAvailableMoves(OppositeState);
                 if (!availiableMoves.Any()) // if there are still no possible moves then someone has won
                 {
                     DisplayVictory();
@@ -233,44 +236,63 @@ namespace Othello
             }
         }
 
-        private void RunBots()
+        private void RunBlackBot()
         {
-            if (blackBot && isPlayer1)
+            switch (genBlack)
             {
-                switch (genBlack)
-                {
-                    case 1:
-                        randomBot.Run(gameBoard, CurrentState);
-                        break;
-                    case 2:
-                        biasedBot.Run(gameBoard, CurrentState);
-                        break;
-                    case 3:
-                        aI.Run(gameBoard, CurrentState);
-                        break;
-                }
-                PreformAfterMove();
-                if (IsGameOver())
-                    return;
+                case 1:
+                    randomBot.Run(gameBoard, CurrentState);
+                    break;
+                case 2:
+                    biasedBot.Run(gameBoard, CurrentState);
+                    break;
+                case 3:
+                    aI.Run(gameBoard, CurrentState);
+                    break;
             }
-            else if (whiteBot && !isPlayer1)
+            PreformAfterMove();
+            if (IsGameOver())
+                return;
+
+            if (gameBoard.GetAvailableMoves(OppositeState).Count == 0)
             {
-                switch (genBlack)
-                {
-                    case 1:
-                        randomBot.Run(gameBoard, CurrentState);
-                        break;
-                    case 2:
-                        biasedBot.Run(gameBoard, CurrentState);
-                        break;
-                    case 3:
-                        aI.Run(gameBoard, CurrentState);
-                        break;
-                }
-                PreformAfterMove();
-                if (IsGameOver())
-                    return;
+                RunBlackBot();
             }
+            else
+                SwitchPlayer();
+            // else if (whiteBot)             // this has a high probability to crash the program so dont implement just yet
+            // {
+            //     RunWhiteBot();
+            // }
+        }
+        private void RunWhiteBot()
+        {
+            switch (genWhite)
+            {
+                case 1:
+                    randomBot.Run(gameBoard, CurrentState);
+                    break;
+                case 2:
+                    biasedBot.Run(gameBoard, CurrentState);
+                    break;
+                case 3:
+                    aI.Run(gameBoard, CurrentState);
+                    break;
+            }
+            PreformAfterMove();
+            if (IsGameOver())
+                return;
+
+            if (gameBoard.GetAvailableMoves(OppositeState).Count == 0)
+            {
+                RunWhiteBot();
+            }
+            else
+                SwitchPlayer();
+            // else if (blackBot)                 // this has a high probability to crash the program so dont implement just yet
+            // {
+            //     RunBlackBot();
+            // }
         }
 
 
@@ -287,20 +309,22 @@ namespace Othello
 
         private void BlackBot_CheckedChanged(object sender, EventArgs e)
         {
+            Update();
             blackBot = BlackBot.Checked;
             if (isPlayer1)
             {
-                RunBots();
+                RunBlackBot();
             }
 
         }
 
         private void WhiteBot_CheckedChanged(object sender, EventArgs e)
         {
+            Update();
             whiteBot = WhiteBot.Checked;
             if (!isPlayer1)
             {
-                RunBots();
+                RunWhiteBot();
             }
         }
     }

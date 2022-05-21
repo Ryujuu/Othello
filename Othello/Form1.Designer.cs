@@ -58,7 +58,7 @@
             this.label1.ForeColor = System.Drawing.Color.White;
             this.label1.Location = new System.Drawing.Point(514, 178);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(192, 40);
+            this.label1.Size = new System.Drawing.Size(250, 40);
             this.label1.TabIndex = 4;
             this.label1.Text = "Winner";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;

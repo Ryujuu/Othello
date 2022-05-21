@@ -99,7 +99,7 @@ namespace Othello
                 Eval += 20;
             return Eval;
 
-            // Use weight table to calculate 
+            // Use weight table to calculate maybe...
 
             int[,] weightTable = new int[8, 8] {
                 { 100, -10, 11, 6, 6, 11, -10, 100 } ,
