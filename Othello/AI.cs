@@ -61,6 +61,7 @@ namespace Othello
                     moves1 = newMoves;
                 }
                 double maxEval = double.MinValue;
+
                 foreach (var move in moves1)
                 {
                     // Make a copy of the board
@@ -70,19 +71,19 @@ namespace Othello
                     generationBoard.MakeMove(move, player);
 
                     PostionEvaluationResult eval;
-                    var availiableMoves = generationBoard.GetAvailableMoves(oppositePlayer); // Does this maybe exist on row 262?
-                    if (availiableMoves.Any())
+                    var availiableMoves = generationBoard.GetAvailableMoves(oppositePlayer); // check if there are any moves that opponent can make
+                    if (availiableMoves.Any()) // if there are moves ==>
                     {
-                        eval = Minimax(generationBoard, depth - 1, alpha, beta, false, player);
+                        eval = Minimax(generationBoard, depth - 1, alpha, beta, false, player); // play as minimizing player during next move
                     }
-                    else
+                    else // opponent has no moves and turn goes back
                     {
-                        eval = Minimax(generationBoard, depth - 1, alpha, beta, true, player);
+                        eval = Minimax(generationBoard, depth - 1, alpha, beta, true, player); // play again as maximizing player
                     }
-                    if (maxEval < eval.score)
+                    if (maxEval < eval.score) // if the previously highest score is less then the positions score
                     {
-                        evaluation.coordinates = move;
-                        maxEval = eval.score;
+                        evaluation.coordinates = move; // save cordinates of the move
+                        maxEval = eval.score; // save the new score as the highest score
                     }
                     alpha = Math.Max(alpha, eval.score);
                     if (beta <= alpha)
@@ -111,20 +112,20 @@ namespace Othello
                     generationBoard.MakeMove(move, oppositePlayer);
 
                     PostionEvaluationResult eval;
-                    var availiableMoves = generationBoard.GetAvailableMoves(player);
-                    if (availiableMoves.Any())
+                    var availiableMoves = generationBoard.GetAvailableMoves(player); // check if there are any moves that opponent can make
+                    if (availiableMoves.Any()) // if there are moves ==>
                     {
-                        eval = Minimax(generationBoard, depth - 1, alpha, beta, true, player);
+                        eval = Minimax(generationBoard, depth - 1, alpha, beta, true, player); // play as maximizing player during next move
                     }
-                    else
+                    else // opponent has no moves and turn goes back
                     {
-                        eval = Minimax(generationBoard, depth - 1, alpha, beta, false, player);
+                        eval = Minimax(generationBoard, depth - 1, alpha, beta, false, player); // play again as minimizing player
                     }
 
-                    if (minEval > eval.score)
+                    if (minEval > eval.score) // if the previously lowest score is larger then the positions score
                     {
-                        evaluation.coordinates = move;
-                        minEval = eval.score;
+                        evaluation.coordinates = move; // save cordinates of the move
+                        minEval = eval.score; // save the new lowest score
                     }
                     beta = Math.Min(beta, eval.score);
                     if (beta <= alpha)

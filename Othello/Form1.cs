@@ -109,10 +109,10 @@ namespace Othello
             }
             gameBoard.MakeMove(new Position(x, y), CurrentState); // makes the move on the gameboard
             PreformAfterMove();
+            SwitchPlayer(); // change players
             Update();
             if (IsGameOver())
                 return;
-            SwitchPlayer();
             if (blackBot && isPlayer1)
                 RunBlackBot();
             else if (whiteBot && !isPlayer1)
@@ -123,14 +123,13 @@ namespace Othello
         {
             HideAvailiableMoves(); // hide previously available moves and update them later after we made the new move
             DisplayBoard(); // display the new postion on the screen
-            SwitchPlayer(); // change players
             DisplayScore(); // displays the number of pieces each player has on the board
             label4.Text = aI.nPositions.ToString(); // show the amount of postions that the ai went through
-            if (showAvailiableMoves) // if the option to see moves is activated then display them
+            if (showAvailiableMoves) // if the option to see the next moves is activated then display then
             {
-                ShowAvailiableMoves(gameBoard.GetAvailableMoves(CurrentState));
+                ShowAvailiableMoves(gameBoard.GetAvailableMoves(OppositeState)); // show the next players moves
             }
-            label6.Text = gameBoard.EvaluatePosition(CurrentState).ToString();
+            label6.Text = gameBoard.EvaluatePosition(OppositeState).ToString();
         }
         private bool IsGameOver()
         {
