@@ -9,7 +9,9 @@ namespace Othello
     internal class AI
     {
         public int nPositions = 0;
-        static int maxDepth = 6;
+        public static int maxDepth = 7;
+
+        // increase deapth during last 15 or so moves
 
         public void Run(Board gameBoard, int currentState)
         {
@@ -42,7 +44,7 @@ namespace Othello
             var moves1 = gamePosition.GetAvailableMoves(player);
             var moves2 = gamePosition.GetAvailableMoves(oppositePlayer);
 
-            if (depth == 0 || gamePosition.moves == Board.gridSize * Board.gridSize || !moves1.Any() || !moves2.Any()) // If no valid moves exist then return position
+            if (depth == 0 || gamePosition.moves == Board.gridSize * Board.gridSize) // || !moves1.Any() || !moves2.Any()) ?           // If no valid moves exist then return position
             {
                 nPositions++;
                 PostionEvaluationResult result = new PostionEvaluationResult();

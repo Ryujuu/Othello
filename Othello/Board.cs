@@ -79,39 +79,65 @@ namespace Othello
         }
         public double EvaluatePosition(int player)
         {
-            int antiplayer = player == 1 ? 2 : 1;
-            double Eval = CountScore(player) - CountScore(antiplayer);
+            int oppositePlayer = player == 1 ? 2 : 1;
+            double Eval = CountScore(player) - CountScore(oppositePlayer);
 
-            if (position[0, 0] == player || position[gridSize - 1, gridSize - 1] == player)
-                Eval += 5;
-            if (position[0, gridSize - 1] == player || position[gridSize - 1, 0] == player)
-                Eval += 5;
+            if (moves < (64-AI.maxDepth))
+            {
+                if (position[0, 0] == player || position[gridSize - 1, gridSize - 1] == player)
+                    Eval += 7;
+                if (position[0, gridSize - 1] == player || position[gridSize - 1, 0] == player)
+                    Eval += 7;
 
-            if (position[0, 0] == antiplayer || position[gridSize - 1, gridSize - 1] == antiplayer)
-                Eval -= 10;
-            if (position[0, gridSize - 1] == antiplayer || position[gridSize - 1, 0] == antiplayer)
-                Eval -= 10;
+                if (position[0, 0] == oppositePlayer || position[gridSize - 1, gridSize - 1] == oppositePlayer)
+                    Eval -= 12;
+                if (position[0, gridSize - 1] == oppositePlayer || position[gridSize - 1, 0] == oppositePlayer)
+                    Eval -= 12;
 
-            var antimoves = GetAvailableMoves(antiplayer).Count;
-            Eval -= antimoves;
-            Eval += GetAvailableMoves(player).Count;
-            if (antimoves == 0)
-                Eval += 20;
+                var curMoves = GetAvailableMoves(player).Count;
+                var oppMoves = GetAvailableMoves(oppositePlayer).Count;
+                Eval += curMoves * 2.2;
+                Eval -= oppMoves * 2.5;
+
+                if (curMoves == 0)
+                    Eval -= 20;
+
+                if (oppMoves == 0)
+                    Eval += 20;
+
+                int playerTilesOnSides = 0;
+                int oppositeplayerTilesOnSides = 0;
+                for (int x = 0; x < gridSize; x++)
+                {
+                    if (position[x, 0] == player)
+                        playerTilesOnSides++;
+                    if (position[x, 7] == player)
+                        playerTilesOnSides++;
+
+                    if (position[x, 0] == oppositePlayer)
+                        oppositeplayerTilesOnSides++;
+                    if (position[x, 7] == oppositePlayer)
+                        oppositeplayerTilesOnSides++;
+                }
+                for (int y = 0; y < gridSize; y++)
+                {
+                    if (position[0, y] == player)
+                        playerTilesOnSides++;
+                    if (position[7, y] == player)
+                        playerTilesOnSides++;
+
+                    if (position[0, y] == oppositePlayer)
+                        oppositeplayerTilesOnSides++;
+                    if (position[7, y] == oppositePlayer)
+                        oppositeplayerTilesOnSides++;
+                }
+
+                Eval += playerTilesOnSides * 1.5;
+                Eval -= oppositeplayerTilesOnSides * 1.5;
+            }
             return Eval;
-
-            // Use weight table to calculate maybe...
-
-            int[,] weightTable = new int[8, 8] {
-                { 100, -10, 11, 6, 6, 11, -10, 100 } ,
-                { -10, -20,  1, 2, 2,  1, -20, -10 } ,
-                {  11,   1,  5, 4, 4,  5,   1,  11 } ,
-                {   6,   2,  4, 2, 2,  4,   2,   6 } ,
-                {   6,   2,  4, 2, 2,  4,   2,   6 } ,
-                {  11,   1,  5, 4, 4,  5,   1,  11 } ,
-                { -10, -20,  1, 2, 2,  1, -20, -10 } ,
-                { 100, -10, 11, 6, 6, 11, -10, 100 } ,
-                };
         }
+
 
         public List<Position> GetAvailableMoves(int tag)
         {
@@ -137,7 +163,7 @@ namespace Othello
             }
             return tiles;
         }
-        
+
         public List<Position> GetAffectedDiscs(int x, int y, int nextTag)
         {
             var allAffectedDiscs = new List<Position>();
