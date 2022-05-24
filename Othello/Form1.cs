@@ -42,7 +42,7 @@ namespace Othello
         {
             InitializeComponent();
 
-            label1.Hide();
+            Winner.Hide();
             pictureBox1.BackColor = Color.Transparent;
             pictureBox1.Image = Resources.Black;
             flowLayoutPanel1.Size = new Size(sides, sides);
@@ -57,6 +57,10 @@ namespace Othello
             {
                 ShowAvailiableMoves(gameBoard.GetAvailableMoves(CurrentState));
             }
+            Positions.Text = "Positions reached: " + 0;
+            Depth.Text = "Depth: " + AI.maxDepth;
+            Eval.Text = "Evaluation: " + 0;
+            Moves.Text = "Pieces on the board: " + gameBoard.moves.ToString();
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -124,12 +128,15 @@ namespace Othello
             HideAvailiableMoves(); // hide previously available moves and update them later after we made the new move
             DisplayBoard(); // display the new postion on the screen
             DisplayScore(); // displays the number of pieces each player has on the board
-            label4.Text = aI.nPositions.ToString(); // show the amount of postions that the ai went through
+            Depth.Text = "Depth: " + AI.maxDepth.ToString();
+            Positions.Text = "Positions reached: " + aI.nPositions.ToString(); // show the amount of postions that the ai went through
             if (showAvailiableMoves) // if the option to see the next moves is activated then display then
             {
                 ShowAvailiableMoves(gameBoard.GetAvailableMoves(OppositeState)); // show the next players moves
             }
-            label6.Text = gameBoard.EvaluatePosition(OppositeState).ToString();
+            float eval = (float)gameBoard.EvaluatePosition(OppositeState);
+            Eval.Text = "Evaluation: " + eval.ToString();
+            Moves.Text = "Pieces on the board: " + gameBoard.moves.ToString();
         }
         private bool IsGameOver()
         {
@@ -210,8 +217,8 @@ namespace Othello
 
         public void DisplayScore()
         {
-            label2.Text = "White Tiles: " + gameBoard.CountScore(2);
-            label3.Text = "Black Tiles: " + gameBoard.CountScore(1);
+            WhiteScore.Text = "White Tiles: " + gameBoard.CountScore(2);
+            BlackScore.Text = "Black Tiles: " + gameBoard.CountScore(1);
         }
         public void DisplayVictory()
         {
@@ -220,18 +227,18 @@ namespace Othello
 
             if (countWhite > countBlack)
             {
-                label1.Text = "White has won!";
-                label1.Show();
+                Winner.Text = "White has won!";
+                Winner.Show();
             }
             else if (countWhite == countBlack)
             {
-                label1.Text = "It's a draw!";
-                label1.Show();
+                Winner.Text = "It's a draw!";
+                Winner.Show();
             }
             else
             {
-                label1.Text = "Black has won!";
-                label1.Show();
+                Winner.Text = "Black has won!";
+                Winner.Show();
             }
         }
 

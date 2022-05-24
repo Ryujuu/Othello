@@ -9,7 +9,7 @@ namespace Othello
     internal class AI
     {
         public int nPositions = 0;
-        public static int maxDepth = 7;
+        public static int maxDepth = 6;
 
         // increase deapth during last 15 or so moves
 
@@ -17,6 +17,12 @@ namespace Othello
         {
             //Maybe block enemy moves
             nPositions = 0;
+
+            if (gameBoard.moves >= 44 && gameBoard.moves < 50) // When end game is reached and fewer moves exists increse the depth
+                AI.maxDepth = 8;
+            else if (gameBoard.moves >= 50)
+                AI.maxDepth = 14;
+
             var move = Minimax(gameBoard, maxDepth, double.MinValue, double.MaxValue, true, currentState);
             if (move.coordinates == null) return;
 

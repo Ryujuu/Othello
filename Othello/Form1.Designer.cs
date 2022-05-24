@@ -29,16 +29,18 @@
         private void InitializeComponent()
         {
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
-            this.label1 = new System.Windows.Forms.Label();
+            this.Winner = new System.Windows.Forms.Label();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
+            this.WhiteScore = new System.Windows.Forms.Label();
+            this.Positions = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.ShowMoves = new System.Windows.Forms.CheckBox();
             this.BlackBot = new System.Windows.Forms.CheckBox();
-            this.label3 = new System.Windows.Forms.Label();
+            this.BlackScore = new System.Windows.Forms.Label();
             this.WhiteBot = new System.Windows.Forms.CheckBox();
-            this.label6 = new System.Windows.Forms.Label();
+            this.Eval = new System.Windows.Forms.Label();
+            this.Depth = new System.Windows.Forms.Label();
+            this.Moves = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -51,17 +53,17 @@
             this.flowLayoutPanel1.Size = new System.Drawing.Size(496, 496);
             this.flowLayoutPanel1.TabIndex = 0;
             // 
-            // label1
+            // Winner
             // 
-            this.label1.BackColor = System.Drawing.Color.Transparent;
-            this.label1.Font = new System.Drawing.Font("Snap ITC", 18F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point);
-            this.label1.ForeColor = System.Drawing.Color.White;
-            this.label1.Location = new System.Drawing.Point(514, 178);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(250, 40);
-            this.label1.TabIndex = 4;
-            this.label1.Text = "Winner";
-            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.Winner.BackColor = System.Drawing.Color.Transparent;
+            this.Winner.Font = new System.Drawing.Font("Snap ITC", 18F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point);
+            this.Winner.ForeColor = System.Drawing.Color.White;
+            this.Winner.Location = new System.Drawing.Point(514, 178);
+            this.Winner.Name = "Winner";
+            this.Winner.Size = new System.Drawing.Size(250, 40);
+            this.Winner.TabIndex = 4;
+            this.Winner.Text = "Winner";
+            this.Winner.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // pictureBox1
             // 
@@ -73,25 +75,27 @@
             this.pictureBox1.TabIndex = 5;
             this.pictureBox1.TabStop = false;
             // 
-            // label2
+            // WhiteScore
             // 
-            this.label2.BackColor = System.Drawing.Color.Transparent;
-            this.label2.Font = new System.Drawing.Font("Snap ITC", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.label2.ForeColor = System.Drawing.Color.White;
-            this.label2.Location = new System.Drawing.Point(514, 12);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(168, 23);
-            this.label2.TabIndex = 6;
-            this.label2.Text = "White Tiles: 2";
+            this.WhiteScore.BackColor = System.Drawing.Color.Transparent;
+            this.WhiteScore.Font = new System.Drawing.Font("Snap ITC", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.WhiteScore.ForeColor = System.Drawing.Color.White;
+            this.WhiteScore.Location = new System.Drawing.Point(514, 12);
+            this.WhiteScore.Name = "WhiteScore";
+            this.WhiteScore.Size = new System.Drawing.Size(168, 23);
+            this.WhiteScore.TabIndex = 6;
+            this.WhiteScore.Text = "White Tiles: 2";
             // 
-            // label4
+            // Positions
             // 
-            this.label4.BackColor = System.Drawing.Color.White;
-            this.label4.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.label4.Location = new System.Drawing.Point(518, 278);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(100, 23);
-            this.label4.TabIndex = 11;
+            this.Positions.BackColor = System.Drawing.Color.Transparent;
+            this.Positions.Font = new System.Drawing.Font("Snap ITC", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.Positions.ForeColor = System.Drawing.Color.White;
+            this.Positions.Location = new System.Drawing.Point(518, 325);
+            this.Positions.Name = "Positions";
+            this.Positions.Size = new System.Drawing.Size(246, 23);
+            this.Positions.TabIndex = 11;
+            this.Positions.Text = "Positions reached: ";
             // 
             // label5
             // 
@@ -112,7 +116,7 @@
             this.ShowMoves.CheckState = System.Windows.Forms.CheckState.Checked;
             this.ShowMoves.Font = new System.Drawing.Font("Snap ITC", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.ShowMoves.ForeColor = System.Drawing.Color.White;
-            this.ShowMoves.Location = new System.Drawing.Point(518, 254);
+            this.ShowMoves.Location = new System.Drawing.Point(518, 264);
             this.ShowMoves.Name = "ShowMoves";
             this.ShowMoves.Size = new System.Drawing.Size(113, 21);
             this.ShowMoves.TabIndex = 13;
@@ -134,16 +138,16 @@
             this.BlackBot.UseVisualStyleBackColor = false;
             this.BlackBot.CheckedChanged += new System.EventHandler(this.BlackBot_CheckedChanged);
             // 
-            // label3
+            // BlackScore
             // 
-            this.label3.BackColor = System.Drawing.Color.Transparent;
-            this.label3.Font = new System.Drawing.Font("Snap ITC", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.label3.ForeColor = System.Drawing.Color.White;
-            this.label3.Location = new System.Drawing.Point(514, 485);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(168, 23);
-            this.label3.TabIndex = 15;
-            this.label3.Text = "Black Tiles: 2";
+            this.BlackScore.BackColor = System.Drawing.Color.Transparent;
+            this.BlackScore.Font = new System.Drawing.Font("Snap ITC", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.BlackScore.ForeColor = System.Drawing.Color.White;
+            this.BlackScore.Location = new System.Drawing.Point(514, 485);
+            this.BlackScore.Name = "BlackScore";
+            this.BlackScore.Size = new System.Drawing.Size(168, 23);
+            this.BlackScore.TabIndex = 15;
+            this.BlackScore.Text = "Black Tiles: 2";
             // 
             // WhiteBot
             // 
@@ -159,14 +163,35 @@
             this.WhiteBot.UseVisualStyleBackColor = false;
             this.WhiteBot.CheckedChanged += new System.EventHandler(this.WhiteBot_CheckedChanged);
             // 
-            // label6
+            // Eval
             // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(523, 310);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(38, 15);
-            this.label6.TabIndex = 17;
-            this.label6.Text = "label6";
+            this.Eval.Font = new System.Drawing.Font("Snap ITC", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.Eval.ForeColor = System.Drawing.Color.White;
+            this.Eval.Location = new System.Drawing.Point(518, 348);
+            this.Eval.Name = "Eval";
+            this.Eval.Size = new System.Drawing.Size(246, 23);
+            this.Eval.TabIndex = 17;
+            this.Eval.Text = "Evaluation: ";
+            // 
+            // Depth
+            // 
+            this.Depth.Font = new System.Drawing.Font("Snap ITC", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.Depth.ForeColor = System.Drawing.Color.White;
+            this.Depth.Location = new System.Drawing.Point(518, 302);
+            this.Depth.Name = "Depth";
+            this.Depth.Size = new System.Drawing.Size(246, 23);
+            this.Depth.TabIndex = 18;
+            this.Depth.Text = "Depth: ";
+            // 
+            // Moves
+            // 
+            this.Moves.Font = new System.Drawing.Font("Snap ITC", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.Moves.ForeColor = System.Drawing.Color.White;
+            this.Moves.Location = new System.Drawing.Point(518, 99);
+            this.Moves.Name = "Moves";
+            this.Moves.Size = new System.Drawing.Size(246, 23);
+            this.Moves.TabIndex = 19;
+            this.Moves.Text = "Pieces on the board: ";
             // 
             // Form1
             // 
@@ -174,16 +199,18 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ActiveCaption;
             this.ClientSize = new System.Drawing.Size(776, 521);
-            this.Controls.Add(this.label6);
+            this.Controls.Add(this.Moves);
+            this.Controls.Add(this.Depth);
+            this.Controls.Add(this.Eval);
             this.Controls.Add(this.WhiteBot);
-            this.Controls.Add(this.label3);
+            this.Controls.Add(this.BlackScore);
             this.Controls.Add(this.BlackBot);
             this.Controls.Add(this.ShowMoves);
             this.Controls.Add(this.label5);
-            this.Controls.Add(this.label4);
-            this.Controls.Add(this.label2);
+            this.Controls.Add(this.Positions);
+            this.Controls.Add(this.WhiteScore);
             this.Controls.Add(this.pictureBox1);
-            this.Controls.Add(this.label1);
+            this.Controls.Add(this.Winner);
             this.Controls.Add(this.flowLayoutPanel1);
             this.ForeColor = System.Drawing.SystemColors.ControlText;
             this.Name = "Form1";
@@ -198,15 +225,17 @@
         #endregion
 
         private FlowLayoutPanel flowLayoutPanel1;
-        private Label label1;
+        private Label Winner;
         private PictureBox pictureBox1;
-        private Label label2;
-        private Label label4;
+        private Label WhiteScore;
+        private Label Positions;
         private Label label5;
         private CheckBox ShowMoves;
         private CheckBox BlackBot;
-        private Label label3;
+        private Label BlackScore;
         private CheckBox WhiteBot;
-        private Label label6;
+        private Label Eval;
+        private Label Depth;
+        private Label Moves;
     }
 }

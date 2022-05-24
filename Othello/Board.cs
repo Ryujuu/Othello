@@ -55,6 +55,7 @@ namespace Othello
                 AddNeighbours(move.x, move.y);
                 moves++;
             }
+
             return tilesToChange;
         }
 
@@ -79,62 +80,107 @@ namespace Othello
         }
         public double EvaluatePosition(int player)
         {
-            int oppositePlayer = player == 1 ? 2 : 1;
-            double Eval = CountScore(player) - CountScore(oppositePlayer);
+            double Eval = 0;
 
-            if (moves < (64-AI.maxDepth))
+            if (moves <= 14)
             {
-                if (position[0, 0] == player || position[gridSize - 1, gridSize - 1] == player)
-                    Eval += 7;
-                if (position[0, gridSize - 1] == player || position[gridSize - 1, 0] == player)
-                    Eval += 7;
-
-                if (position[0, 0] == oppositePlayer || position[gridSize - 1, gridSize - 1] == oppositePlayer)
-                    Eval -= 12;
-                if (position[0, gridSize - 1] == oppositePlayer || position[gridSize - 1, 0] == oppositePlayer)
-                    Eval -= 12;
-
-                var curMoves = GetAvailableMoves(player).Count;
-                var oppMoves = GetAvailableMoves(oppositePlayer).Count;
-                Eval += curMoves * 2.2;
-                Eval -= oppMoves * 2.5;
-
-                if (curMoves == 0)
-                    Eval -= 20;
-
-                if (oppMoves == 0)
-                    Eval += 20;
-
-                int playerTilesOnSides = 0;
-                int oppositeplayerTilesOnSides = 0;
-                for (int x = 0; x < gridSize; x++)
-                {
-                    if (position[x, 0] == player)
-                        playerTilesOnSides++;
-                    if (position[x, 7] == player)
-                        playerTilesOnSides++;
-
-                    if (position[x, 0] == oppositePlayer)
-                        oppositeplayerTilesOnSides++;
-                    if (position[x, 7] == oppositePlayer)
-                        oppositeplayerTilesOnSides++;
-                }
-                for (int y = 0; y < gridSize; y++)
-                {
-                    if (position[0, y] == player)
-                        playerTilesOnSides++;
-                    if (position[7, y] == player)
-                        playerTilesOnSides++;
-
-                    if (position[0, y] == oppositePlayer)
-                        oppositeplayerTilesOnSides++;
-                    if (position[7, y] == oppositePlayer)
-                        oppositeplayerTilesOnSides++;
-                }
-
-                Eval += playerTilesOnSides * 1.5;
-                Eval -= oppositeplayerTilesOnSides * 1.5;
+                Eval = EarlyGameEval(player, Eval);
             }
+            else if (moves < (64-AI.maxDepth))
+            {
+                Eval = MidGameEval(player, Eval);
+            }
+            else
+            {
+                Eval = EndGameEval(player, Eval);
+            }
+            return Eval;
+        }
+        private double EarlyGameEval(int player, double Eval)
+        {
+            // more moves is good and less pieces
+
+            int oppositePlayer = player == 1 ? 2 : 1;
+
+            var curMoves = GetAvailableMoves(player).Count;
+            var oppMoves = GetAvailableMoves(oppositePlayer).Count;
+            Eval += curMoves * 3;
+            Eval -= oppMoves * 3;
+
+            if (curMoves == 0)
+                Eval -= 100;
+
+            if (oppMoves == 0)
+                Eval += 100;
+
+            return Eval;
+        }
+        private double MidGameEval(int player, double Eval)
+        {
+            // more moves is still valuble but corners and sides are high priority
+
+            int oppositePlayer = player == 1 ? 2 : 1;
+            Eval = CountScore(player) - CountScore(oppositePlayer);
+
+            if (position[0, 0] == player || position[gridSize - 1, gridSize - 1] == player)
+                Eval += 7;
+            if (position[0, gridSize - 1] == player || position[gridSize - 1, 0] == player)
+                Eval += 7;
+
+            if (position[0, 0] == oppositePlayer || position[gridSize - 1, gridSize - 1] == oppositePlayer)
+                Eval -= 12;
+            if (position[0, gridSize - 1] == oppositePlayer || position[gridSize - 1, 0] == oppositePlayer)
+                Eval -= 12;
+
+            var curMoves = GetAvailableMoves(player).Count;
+            var oppMoves = GetAvailableMoves(oppositePlayer).Count;
+            Eval += curMoves * 2.2;
+            Eval -= oppMoves * 2.5;
+
+            if (curMoves == 0)
+                Eval -= 20;
+
+            if (oppMoves == 0)
+                Eval += 20;
+
+            int playerTilesOnSides = 0;
+            int oppositeplayerTilesOnSides = 0;
+            for (int x = 0; x < gridSize; x++)
+            {
+                if (position[x, 0] == player)
+                    playerTilesOnSides++;
+                if (position[x, 7] == player)
+                    playerTilesOnSides++;
+
+                if (position[x, 0] == oppositePlayer)
+                    oppositeplayerTilesOnSides++;
+                if (position[x, 7] == oppositePlayer)
+                    oppositeplayerTilesOnSides++;
+            }
+            for (int y = 0; y < gridSize; y++)
+            {
+                if (position[0, y] == player)
+                    playerTilesOnSides++;
+                if (position[7, y] == player)
+                    playerTilesOnSides++;
+
+                if (position[0, y] == oppositePlayer)
+                    oppositeplayerTilesOnSides++;
+                if (position[7, y] == oppositePlayer)
+                    oppositeplayerTilesOnSides++;
+            }
+
+            Eval += playerTilesOnSides * 1.5;
+            Eval -= oppositeplayerTilesOnSides * 1.5;
+
+            return Eval;
+        }
+        private double EndGameEval(int player, double Eval)
+        {
+            // when the depth reaches to the end of the game evaluate only by the score difference
+
+            int oppositePlayer = player == 1 ? 2 : 1;
+            Eval = CountScore(player) - CountScore(oppositePlayer);
             return Eval;
         }
 
