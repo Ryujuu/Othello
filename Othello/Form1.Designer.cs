@@ -41,6 +41,7 @@
             this.Eval = new System.Windows.Forms.Label();
             this.Depth = new System.Windows.Forms.Label();
             this.Moves = new System.Windows.Forms.Label();
+            this.RandomMove = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -193,12 +194,23 @@
             this.Moves.TabIndex = 19;
             this.Moves.Text = "Pieces on the board: ";
             // 
+            // RandomMove
+            // 
+            this.RandomMove.Location = new System.Drawing.Point(518, 397);
+            this.RandomMove.Name = "RandomMove";
+            this.RandomMove.Size = new System.Drawing.Size(125, 23);
+            this.RandomMove.TabIndex = 20;
+            this.RandomMove.Text = "Make random move";
+            this.RandomMove.UseVisualStyleBackColor = true;
+            this.RandomMove.Click += new System.EventHandler(this.RandomMove_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ActiveCaption;
             this.ClientSize = new System.Drawing.Size(776, 521);
+            this.Controls.Add(this.RandomMove);
             this.Controls.Add(this.Moves);
             this.Controls.Add(this.Depth);
             this.Controls.Add(this.Eval);
@@ -237,5 +249,6 @@
         private Label Eval;
         private Label Depth;
         private Label Moves;
+        private Button RandomMove;
     }
 }

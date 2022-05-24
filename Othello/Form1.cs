@@ -4,6 +4,8 @@ namespace Othello
 {
     public partial class Form1 : Form
     {
+        List<Board> gamePositions = new List<Board>();
+
         Board gameBoard = new Board();
 
         PictureBox[,] visualBoard = new PictureBox[gridSize, gridSize];
@@ -61,6 +63,8 @@ namespace Othello
             Depth.Text = "Depth: " + AI.maxDepth;
             Eval.Text = "Evaluation: " + 0;
             Moves.Text = "Pieces on the board: " + gameBoard.moves.ToString();
+            Board tempPosition = new Board(gameBoard);
+            gamePositions.Add(tempPosition);
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -125,6 +129,8 @@ namespace Othello
 
         private void PreformAfterMove()
         {
+            Board tempPosition = new Board(gameBoard);
+            gamePositions.Add(tempPosition);
             HideAvailiableMoves(); // hide previously available moves and update them later after we made the new move
             DisplayBoard(); // display the new postion on the screen
             DisplayScore(); // displays the number of pieces each player has on the board
@@ -332,6 +338,15 @@ namespace Othello
             {
                 RunWhiteBot();
             }
+        }
+
+        private void RandomMove_Click(object sender, EventArgs e)
+        {
+            randomBot.Run(gameBoard, CurrentState);
+            PreformAfterMove();
+            if (IsGameOver())
+                return;
+            SwitchPlayer();
         }
     }
 }

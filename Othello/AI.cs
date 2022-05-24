@@ -27,6 +27,7 @@ namespace Othello
             if (move.coordinates == null) return;
 
             gameBoard.MakeMove(move.coordinates, currentState);
+            Thread.Sleep(300);
         }
 
         public List<Position> ManualFirstDepth(Board gamePosition, List<Position> moves, int player)
