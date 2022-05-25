@@ -1,14 +1,15 @@
 using Othello.Properties;
+using System.Diagnostics;
 
 namespace Othello
 {
     public partial class Form1 : Form
     {
         List<Board> gamePositions = new List<Board>();
-
         Board gameBoard = new Board();
-
         PictureBox[,] visualBoard = new PictureBox[gridSize, gridSize];
+
+        Stopwatch stopwatch = new Stopwatch();
 
         // size of the squares sides
         const int tileSize = 60;
@@ -26,6 +27,7 @@ namespace Othello
 
         bool blackBot = false;
         bool whiteBot = false;
+        public bool showAvailiableMoves = true;
 
         int genBlack = 3;
         int genWhite = 3;
@@ -33,9 +35,6 @@ namespace Othello
         RandomBot randomBot = new RandomBot();
         BiasedBot biasedBot = new BiasedBot();
         AI aI = new AI();
-
-
-        public bool showAvailiableMoves = true;
 
         public int CurrentState { get { return isPlayer1 ? 1 : 2; } }
         public int OppositeState { get { return isPlayer1 ? 2 : 1; } }
@@ -135,7 +134,7 @@ namespace Othello
             DisplayBoard(); // display the new postion on the screen
             DisplayScore(); // displays the number of pieces each player has on the board
             Depth.Text = "Depth: " + AI.maxDepth.ToString();
-            Positions.Text = "Positions reached: " + aI.nPositions.ToString(); // show the amount of postions that the ai went through
+            Positions.Text = "Positions searched: " + aI.nPositions.ToString(); // show the amount of postions that the ai went through
             if (showAvailiableMoves) // if the option to see the next moves is activated then display then
             {
                 ShowAvailiableMoves(gameBoard.GetAvailableMoves(OppositeState)); // show the next players moves
@@ -143,6 +142,12 @@ namespace Othello
             float eval = (float)gameBoard.EvaluatePosition(OppositeState);
             Eval.Text = "Evaluation: " + eval.ToString();
             Moves.Text = "Pieces on the board: " + gameBoard.moves.ToString();
+            Time.Text = "Time per move: " + stopwatch.ElapsedMilliseconds.ToString() + " ms";
+            if (aI.nPositions > 0)
+                TPerP.Text = "Time to seach: " + (1000000 * stopwatch.ElapsedMilliseconds / aI.nPositions).ToString() + " ns";
+            else
+                TPerP.Text = "Time to seach: 0 ns";
+            stopwatch.Reset();
         }
         private bool IsGameOver()
         {
@@ -250,6 +255,7 @@ namespace Othello
 
         private void RunBlackBot()
         {
+            stopwatch.Start();
             switch (genBlack)
             {
                 case 1:
@@ -272,13 +278,11 @@ namespace Othello
             }
             else
                 SwitchPlayer();
-            // else if (whiteBot)             // this has a high probability to crash the program so dont implement just yet
-            // {
-            //     RunWhiteBot();
-            // }
+            stopwatch.Stop();
         }
         private void RunWhiteBot()
         {
+            stopwatch.Start();
             switch (genWhite)
             {
                 case 1:
@@ -301,10 +305,7 @@ namespace Othello
             }
             else
                 SwitchPlayer();
-            // else if (blackBot)                 // this has a high probability to crash the program so dont implement just yet
-            // {
-            //     RunBlackBot();
-            // }
+            stopwatch.Stop();
         }
 
 

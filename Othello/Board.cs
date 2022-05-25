@@ -213,13 +213,13 @@ namespace Othello
         }
 
 
-        public List<Position> GetAvailableMoves(int tag)
+        public List<Position> GetAvailableMoves(int state)
         {
             var availableMoves = new List<Position>();
 
             foreach (var position in possiblePositions)
             {
-                if (GetAffectedDiscs(position.x, position.y, tag).Any())
+                if (GetAffectedDiscs(position.x, position.y, state).Any())
                 {
                     availableMoves.Add(new Position(position.x, position.y));
                 }
@@ -238,23 +238,23 @@ namespace Othello
             return tiles;
         }
 
-        public List<Position> GetAffectedDiscs(int x, int y, int nextTag)
+        public List<Position> GetAffectedDiscs(int x, int y, int nextstate)
         {
             var allAffectedDiscs = new List<Position>();
 
-            allAffectedDiscs.AddRange(CheckNorth(x, y, nextTag));
-            allAffectedDiscs.AddRange(CheckNortheast(x, y, nextTag));
-            allAffectedDiscs.AddRange(CheckNorthwest(x, y, nextTag));
-            allAffectedDiscs.AddRange(CheckSouth(x, y, nextTag));
-            allAffectedDiscs.AddRange(CheckSoutheast(x, y, nextTag));
-            allAffectedDiscs.AddRange(CheckSouthwest(x, y, nextTag));
-            allAffectedDiscs.AddRange(CheckEast(x, y, nextTag));
-            allAffectedDiscs.AddRange(CheckWest(x, y, nextTag));
+            allAffectedDiscs.AddRange(CheckNorth(x, y, nextstate));
+            allAffectedDiscs.AddRange(CheckNortheast(x, y, nextstate));
+            allAffectedDiscs.AddRange(CheckNorthwest(x, y, nextstate));
+            allAffectedDiscs.AddRange(CheckSouth(x, y, nextstate));
+            allAffectedDiscs.AddRange(CheckSoutheast(x, y, nextstate));
+            allAffectedDiscs.AddRange(CheckSouthwest(x, y, nextstate));
+            allAffectedDiscs.AddRange(CheckEast(x, y, nextstate));
+            allAffectedDiscs.AddRange(CheckWest(x, y, nextstate));
 
             return allAffectedDiscs;
         }
 
-        public List<Position> CheckNorth(int x, int y, int tag)
+        public List<Position> CheckNorth(int x, int y, int state)
         {
             var list = new List<Position>();
 
@@ -262,13 +262,13 @@ namespace Othello
             {
                 for (int i = y - 1; i >= 0; i--) // Go upwards from current postion
                 {
-                    var nTag = position[x, i];
+                    var nState = position[x, i];
 
-                    if (nTag == 0)
+                    if (nState == 0)
                     {
                         return new List<Position>();
                     }
-                    if (nTag == tag)
+                    if (nState == state)
                     {
                         return list;
                     }
@@ -277,7 +277,7 @@ namespace Othello
             }
             return new List<Position>();
         }
-        public List<Position> CheckNortheast(int x, int y, int tag)
+        public List<Position> CheckNortheast(int x, int y, int state)
         {
             var list = new List<Position>();
 
@@ -285,13 +285,13 @@ namespace Othello
             {
                 for (int i = 1; i <= Math.Min(gridSize - x - 1, y); i++)
                 {
-                    var nTag = position[x + i, y - i];
+                    var nState = position[x + i, y - i];
 
-                    if (nTag == 0)
+                    if (nState == 0)
                     {
                         return new List<Position>();
                     }
-                    if (nTag == tag)
+                    if (nState == state)
                     {
                         return list;
                     }
@@ -300,7 +300,7 @@ namespace Othello
             }
             return new List<Position>();
         }
-        public List<Position> CheckNorthwest(int x, int y, int tag)
+        public List<Position> CheckNorthwest(int x, int y, int state)
         {
             var list = new List<Position>();
 
@@ -308,13 +308,13 @@ namespace Othello
             {
                 for (int i = 1; i <= Math.Min(x, y); i++)
                 {
-                    var nTag = position[x - i, y - i];
+                    var nState = position[x - i, y - i];
 
-                    if (nTag == 0)
+                    if (nState == 0)
                     {
                         return new List<Position>();
                     }
-                    if (nTag == tag)
+                    if (nState == state)
                     {
                         return list;
                     }
@@ -341,7 +341,7 @@ namespace Othello
             return false;
         }
 
-        public List<Position> CheckSouth(int x, int y, int tag)
+        public List<Position> CheckSouth(int x, int y, int state)
         {
             var list = new List<Position>();
 
@@ -349,13 +349,13 @@ namespace Othello
             {
                 for (int i = y + 1; i < gridSize; i++) // Go downwards from current postion
                 {
-                    var nTag = position[x, i]; // Tag of the tile being checked
+                    var nState = position[x, i]; // state of the tile being checked
 
-                    if (nTag == 0) // If the position is empty
+                    if (nState == 0) // If the position is empty
                     {
                         return new List<Position>(); // Return empty list to signify that no change should occur
                     }
-                    if (nTag == tag) // If the tag is the same as the tag to check against
+                    if (nState == state) // If the state is the same as the state to check against
                     {
                         return list;
                     }
@@ -364,7 +364,7 @@ namespace Othello
             }
             return new List<Position>();
         }
-        public List<Position> CheckSoutheast(int x, int y, int tag)
+        public List<Position> CheckSoutheast(int x, int y, int state)
         {
             var list = new List<Position>();
 
@@ -372,13 +372,13 @@ namespace Othello
             {
                 for (int i = 1; i <= Math.Min(gridSize - x - 1, gridSize - y - 1); i++)
                 {
-                    var nTag = position[x + i, y + i];
+                    var nState = position[x + i, y + i];
 
-                    if (nTag == 0)
+                    if (nState == 0)
                     {
                         return new List<Position>();
                     }
-                    if (nTag == tag)
+                    if (nState == state)
                     {
                         return list;
                     }
@@ -387,7 +387,7 @@ namespace Othello
             }
             return new List<Position>();
         }
-        public List<Position> CheckSouthwest(int x, int y, int tag)
+        public List<Position> CheckSouthwest(int x, int y, int state)
         {
             var list = new List<Position>();
 
@@ -395,13 +395,13 @@ namespace Othello
             {
                 for (int i = 1; i <= Math.Min(x, gridSize - y - 1); i++) // Change the others aswell
                 {
-                    var nTag = position[x - i, y + i];
+                    var nState = position[x - i, y + i];
 
-                    if (nTag == 0)
+                    if (nState == 0)
                     {
                         return new List<Position>();
                     }
-                    if (nTag == tag)
+                    if (nState == state)
                     {
                         return list;
                     }
@@ -411,7 +411,7 @@ namespace Othello
             return new List<Position>();
         }
 
-        public List<Position> CheckEast(int x, int y, int tag)
+        public List<Position> CheckEast(int x, int y, int state)
         {
             var list = new List<Position>();
 
@@ -419,13 +419,13 @@ namespace Othello
             {
                 for (int i = x + 1; i < gridSize; i++) // Go to the right from current postion
                 {
-                    var nTag = position[i, y];
+                    var nState = position[i, y];
 
-                    if (nTag == 0)
+                    if (nState == 0)
                     {
                         return new List<Position>();
                     }
-                    if (nTag == tag)
+                    if (nState == state)
                     {
                         return list;
                     }
@@ -435,7 +435,7 @@ namespace Othello
             return new List<Position>();
         }
 
-        public List<Position> CheckWest(int x, int y, int tag)
+        public List<Position> CheckWest(int x, int y, int state)
         {
             var list = new List<Position>();
 
@@ -443,13 +443,13 @@ namespace Othello
             {
                 for (int i = x - 1; i >= 0; i--) // Go to the right from current postion
                 {
-                    var nTag = position[i, y];
+                    var nState = position[i, y];
 
-                    if (nTag == 0)
+                    if (nState == 0)
                     {
                         return new List<Position>();
                     }
-                    if (nTag == tag)
+                    if (nState == state)
                     {
                         return list;
                     }

@@ -42,6 +42,8 @@
             this.Depth = new System.Windows.Forms.Label();
             this.Moves = new System.Windows.Forms.Label();
             this.RandomMove = new System.Windows.Forms.Button();
+            this.Time = new System.Windows.Forms.Label();
+            this.TPerP = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -59,7 +61,7 @@
             this.Winner.BackColor = System.Drawing.Color.Transparent;
             this.Winner.Font = new System.Drawing.Font("Snap ITC", 18F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point);
             this.Winner.ForeColor = System.Drawing.Color.White;
-            this.Winner.Location = new System.Drawing.Point(514, 178);
+            this.Winner.Location = new System.Drawing.Point(514, 212);
             this.Winner.Name = "Winner";
             this.Winner.Size = new System.Drawing.Size(250, 40);
             this.Winner.TabIndex = 4;
@@ -69,7 +71,7 @@
             // pictureBox1
             // 
             this.pictureBox1.BackColor = System.Drawing.Color.Transparent;
-            this.pictureBox1.Location = new System.Drawing.Point(657, 221);
+            this.pictureBox1.Location = new System.Drawing.Point(666, 255);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(40, 40);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
@@ -92,18 +94,18 @@
             this.Positions.BackColor = System.Drawing.Color.Transparent;
             this.Positions.Font = new System.Drawing.Font("Snap ITC", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.Positions.ForeColor = System.Drawing.Color.White;
-            this.Positions.Location = new System.Drawing.Point(518, 325);
+            this.Positions.Location = new System.Drawing.Point(518, 155);
             this.Positions.Name = "Positions";
             this.Positions.Size = new System.Drawing.Size(246, 23);
             this.Positions.TabIndex = 11;
-            this.Positions.Text = "Positions reached: ";
+            this.Positions.Text = "Positions searched: ";
             // 
             // label5
             // 
             this.label5.BackColor = System.Drawing.Color.Transparent;
             this.label5.Font = new System.Drawing.Font("Snap ITC", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.label5.ForeColor = System.Drawing.Color.White;
-            this.label5.Location = new System.Drawing.Point(514, 231);
+            this.label5.Location = new System.Drawing.Point(514, 264);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(146, 20);
             this.label5.TabIndex = 12;
@@ -117,7 +119,7 @@
             this.ShowMoves.CheckState = System.Windows.Forms.CheckState.Checked;
             this.ShowMoves.Font = new System.Drawing.Font("Snap ITC", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.ShowMoves.ForeColor = System.Drawing.Color.White;
-            this.ShowMoves.Location = new System.Drawing.Point(518, 264);
+            this.ShowMoves.Location = new System.Drawing.Point(518, 292);
             this.ShowMoves.Name = "ShowMoves";
             this.ShowMoves.Size = new System.Drawing.Size(113, 21);
             this.ShowMoves.TabIndex = 13;
@@ -178,7 +180,7 @@
             // 
             this.Depth.Font = new System.Drawing.Font("Snap ITC", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.Depth.ForeColor = System.Drawing.Color.White;
-            this.Depth.Location = new System.Drawing.Point(518, 302);
+            this.Depth.Location = new System.Drawing.Point(518, 325);
             this.Depth.Name = "Depth";
             this.Depth.Size = new System.Drawing.Size(246, 23);
             this.Depth.TabIndex = 18;
@@ -188,7 +190,7 @@
             // 
             this.Moves.Font = new System.Drawing.Font("Snap ITC", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.Moves.ForeColor = System.Drawing.Color.White;
-            this.Moves.Location = new System.Drawing.Point(518, 99);
+            this.Moves.Location = new System.Drawing.Point(518, 77);
             this.Moves.Name = "Moves";
             this.Moves.Size = new System.Drawing.Size(246, 23);
             this.Moves.TabIndex = 19;
@@ -204,12 +206,35 @@
             this.RandomMove.UseVisualStyleBackColor = true;
             this.RandomMove.Click += new System.EventHandler(this.RandomMove_Click);
             // 
+            // Time
+            // 
+            this.Time.Font = new System.Drawing.Font("Snap ITC", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.Time.ForeColor = System.Drawing.Color.White;
+            this.Time.Location = new System.Drawing.Point(518, 132);
+            this.Time.Name = "Time";
+            this.Time.Size = new System.Drawing.Size(246, 23);
+            this.Time.TabIndex = 21;
+            this.Time.Text = "Time per move: ";
+            // 
+            // TPerP
+            // 
+            this.TPerP.BackColor = System.Drawing.Color.Transparent;
+            this.TPerP.Font = new System.Drawing.Font("Snap ITC", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.TPerP.ForeColor = System.Drawing.Color.White;
+            this.TPerP.Location = new System.Drawing.Point(518, 178);
+            this.TPerP.Name = "TPerP";
+            this.TPerP.Size = new System.Drawing.Size(246, 23);
+            this.TPerP.TabIndex = 22;
+            this.TPerP.Text = "Time to seach: ";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ActiveCaption;
             this.ClientSize = new System.Drawing.Size(776, 521);
+            this.Controls.Add(this.TPerP);
+            this.Controls.Add(this.Time);
             this.Controls.Add(this.RandomMove);
             this.Controls.Add(this.Moves);
             this.Controls.Add(this.Depth);
@@ -250,5 +275,7 @@
         private Label Depth;
         private Label Moves;
         private Button RandomMove;
+        private Label Time;
+        private Label TPerP;
     }
 }
