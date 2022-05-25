@@ -42,6 +42,30 @@ namespace Othello
             moves += 4;
         }
 
+        
+        public bool StateHasWon(int playerState)
+        {
+            if (playerState == 1)
+            {
+                foreach (int moveState in position)
+                {
+                    if (moveState == 2)
+                        return false;
+                }
+                return true;
+            }
+            if (playerState == 2)
+            {
+                foreach (int moveState in position)
+                {
+                    if (moveState == 1)
+                        return false;
+                }
+                return true;
+            }
+            return false;
+        }
+
         public List<Position> MakeMove(Position move, int player)
         {
             var tilesToChange = GetAffectedDiscs(move.x, move.y, player);
@@ -81,14 +105,10 @@ namespace Othello
         public double EvaluatePosition(int player)
         {
             double Eval = 0;
-
-            if (moves <= 10)
+            
+            if (moves < (64 - AI.maxDepth))
             {
-                Eval = EarlyGameEval(player, Eval);
-            }
-            else if (moves < (64 - AI.maxDepth))
-            {
-                Eval = MidGameEval(player, Eval);
+                Eval = EarlyToMidGameEval(player, Eval);
             }
             else
             {
@@ -96,41 +116,23 @@ namespace Othello
             }
             return Eval;
         }
-        private double EarlyGameEval(int player, double Eval)
-        {
-            // more moves is good and less pieces
-
-            int oppositePlayer = player == 1 ? 2 : 1;
-
-            var curMoves = GetAvailableMoves(player).Count;
-            var oppMoves = GetAvailableMoves(oppositePlayer).Count;
-            Eval += curMoves * 4;
-            Eval -= oppMoves * 4;
-
-            if (curMoves == 0)
-                Eval -= 100;
-
-            if (oppMoves == 0)
-                Eval += 100;
-
-            return Eval;
-        }
-        private double MidGameEval(int player, double Eval)
+        
+        private double EarlyToMidGameEval(int player, double Eval)
         {
             // more moves is still valuble but corners and sides are high priority
 
             int oppositePlayer = player == 1 ? 2 : 1;
             Eval = (CountScore(player) - CountScore(oppositePlayer)) * 0.75;
 
-            Eval += position[0, 0] == player ? 100 : 0;
-            Eval += position[gridSize - 1, gridSize - 1] == player ? 100 : 0;
-            Eval += position[0, gridSize - 1] == player ? 100 : 0;
-            Eval += position[gridSize - 1, 0] == player ? 100 : 0;
+            Eval += position[0, 0] == player ? 25 : 0;
+            Eval += position[gridSize - 1, gridSize - 1] == player ? 25 : 0;
+            Eval += position[0, gridSize - 1] == player ? 25 : 0;
+            Eval += position[gridSize - 1, 0] == player ? 25 : 0;
 
-            Eval -= position[0, 0] == oppositePlayer ? 100 : 0;
-            Eval -= position[gridSize - 1, gridSize - 1] == oppositePlayer ? 100 : 0;
-            Eval -= position[0, gridSize - 1] == oppositePlayer ? 100 : 0;
-            Eval -= position[gridSize - 1, 0] == oppositePlayer ? 100 : 0;
+            Eval -= position[0, 0] == oppositePlayer ? 25 : 0;
+            Eval -= position[gridSize - 1, gridSize - 1] == oppositePlayer ? 25 : 0;
+            Eval -= position[0, gridSize - 1] == oppositePlayer ? 25 : 0;
+            Eval -= position[gridSize - 1, 0] == oppositePlayer ? 25 : 0;
 
             int playerTilesOnSides = 0;
             int oppositeplayerTilesOnSides = 0;
@@ -195,11 +197,11 @@ namespace Othello
             Eval += curMoves * 2;
             Eval -= oppMoves * 2;
 
-            if (curMoves == 0)
-                Eval -= 100;
+            if (StateHasWon(oppositePlayer))
+                Eval -= 1000;
 
-            if (oppMoves == 0)
-                Eval += 100;
+            if (StateHasWon(player))
+                Eval += 1000;
 
             return Eval;
         }

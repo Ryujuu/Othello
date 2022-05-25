@@ -50,7 +50,7 @@ namespace Othello
             var moves1 = gamePosition.GetAvailableMoves(player);
             var moves2 = gamePosition.GetAvailableMoves(oppositePlayer);
 
-            if (depth == 0 || gamePosition.moves == Board.gridSize * Board.gridSize) // || !moves1.Any() || !moves2.Any()) ?           // If no valid moves exist then return position
+            if (depth == 0 || gamePosition.moves == Board.gridSize * Board.gridSize) // || Board.StateHasWon(1) || Board.StateHasWon(2))      // if the position is won AKA all pieces on one side has been captured return
             {
                 nPositions++;
                 PostionEvaluationResult result = new PostionEvaluationResult();

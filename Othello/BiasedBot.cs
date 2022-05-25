@@ -10,6 +10,7 @@ namespace Othello
     {
         public void Run(Board gameBoard, int CurrentState)
         {
+            Random random = new Random();
             var moves = gameBoard.GetAvailableMoves(CurrentState);
             var move = moves.OrderByDescending(x =>
             gameBoard.GetAffectedDiscs(x.x, x.y, CurrentState).Count *

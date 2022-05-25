@@ -30,7 +30,7 @@ namespace Othello
         public bool showAvailiableMoves = true;
 
         int genBlack = 3;
-        int genWhite = 3;
+        int genWhite = 1;
 
         RandomBot randomBot = new RandomBot();
         BiasedBot biasedBot = new BiasedBot();
@@ -279,6 +279,13 @@ namespace Othello
             else
                 SwitchPlayer();
             stopwatch.Stop();
+
+            if (whiteBot)
+            {
+                Update();
+                Thread.Sleep(500);
+                RunWhiteBot();
+            }
         }
         private void RunWhiteBot()
         {
@@ -306,6 +313,13 @@ namespace Othello
             else
                 SwitchPlayer();
             stopwatch.Stop();
+
+            if (blackBot)
+            {
+                Update();
+                Thread.Sleep(1000);
+                RunBlackBot();
+            }
         }
 
 
