@@ -255,71 +255,87 @@ namespace Othello
 
         private void RunBlackBot()
         {
-            stopwatch.Start();
-            switch (genBlack)
+            Task.Run(async () =>
             {
-                case 1:
-                    randomBot.Run(gameBoard, CurrentState);
-                    break;
-                case 2:
-                    biasedBot.Run(gameBoard, CurrentState);
-                    break;
-                case 3:
-                    aI.Run(gameBoard, CurrentState);
-                    break;
-            }
-            PreformAfterMove();
-            if (IsGameOver())
-                return;
+                stopwatch.Start();
+                switch (genBlack)
+                {
+                    case 1:
+                        randomBot.Run(gameBoard, CurrentState);
+                        break;
+                    case 2:
+                        biasedBot.Run(gameBoard, CurrentState);
+                        break;
+                    case 3:
+                        aI.Run(gameBoard, CurrentState);
+                        break;
+                }
+                label5.Invoke(() =>
+                {
+                    PreformAfterMove();
+                    if (IsGameOver())
+                        return;
 
-            if (gameBoard.GetAvailableMoves(OppositeState).Count == 0)
-            {
-                RunBlackBot();
-            }
-            else
-                SwitchPlayer();
-            stopwatch.Stop();
+                    if (gameBoard.GetAvailableMoves(OppositeState).Count == 0)
+                    {
+                        Update();
+                        Thread.Sleep(500);
+                        RunBlackBot();
+                    }
+                    else
+                        SwitchPlayer();
+                    stopwatch.Stop();
 
-            if (whiteBot)
-            {
-                Update();
-                Thread.Sleep(500);
-                RunWhiteBot();
-            }
+                    if (whiteBot)
+                    {
+                        Update();
+                        Thread.Sleep(500);
+                        RunWhiteBot();
+                    }
+                });
+            });
         }
         private void RunWhiteBot()
         {
-            stopwatch.Start();
-            switch (genWhite)
+            Task.Run(async () =>
             {
-                case 1:
-                    randomBot.Run(gameBoard, CurrentState);
-                    break;
-                case 2:
-                    biasedBot.Run(gameBoard, CurrentState);
-                    break;
-                case 3:
-                    aI.Run(gameBoard, CurrentState);
-                    break;
-            }
-            PreformAfterMove();
-            if (IsGameOver())
-                return;
+                stopwatch.Start();
+                switch (genWhite)
+                {
+                    case 1:
+                        randomBot.Run(gameBoard, CurrentState);
+                        break;
+                    case 2:
+                        biasedBot.Run(gameBoard, CurrentState);
+                        break;
+                    case 3:
+                        aI.Run(gameBoard, CurrentState);
+                        break;
+                }
+                label5.Invoke(() =>
+                {
+                    PreformAfterMove();
+                    if (IsGameOver())
+                        return;
 
-            if (gameBoard.GetAvailableMoves(OppositeState).Count == 0)
-            {
-                RunWhiteBot();
-            }
-            else
-                SwitchPlayer();
-            stopwatch.Stop();
+                    if (gameBoard.GetAvailableMoves(OppositeState).Count == 0)
+                    {
+                        Update();
+                        Thread.Sleep(1000);
+                        RunWhiteBot();
+                    }
+                    else
+                        SwitchPlayer();
+                    stopwatch.Stop();
 
-            if (blackBot)
-            {
-                Update();
-                Thread.Sleep(1000);
-                RunBlackBot();
-            }
+                    if (blackBot)
+                    {
+                        Update();
+                        Thread.Sleep(1000);
+                        RunBlackBot();
+                    }
+                });
+            });
         }
 
 
