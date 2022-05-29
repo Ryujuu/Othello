@@ -161,8 +161,8 @@ namespace Othello
                     oppositeplayerTilesOnSides++;
             }
 
-            Eval += playerTilesOnSides * 1.5;
-            Eval -= oppositeplayerTilesOnSides * 1.5;
+            Eval += playerTilesOnSides * 2;
+            Eval -= oppositeplayerTilesOnSides * 2;
 
 
             if (position[0,0] == 0)

@@ -30,7 +30,7 @@ namespace Othello
         public bool showAvailiableMoves = true;
 
         int genBlack = 3;
-        int genWhite = 1;
+        int genWhite = 3;
 
         RandomBot randomBot = new RandomBot();
         BiasedBot biasedBot = new BiasedBot();
@@ -271,30 +271,31 @@ namespace Othello
                         break;
                 }
                 label5.Invoke(() =>
-                {
-                    PreformAfterMove();
-                    if (IsGameOver())
-                        return;
+               {
+                   PreformAfterMove();
+                   if (IsGameOver())
+                       return;
 
-                    if (gameBoard.GetAvailableMoves(OppositeState).Count == 0)
-                    {
-                        Update();
-                        Thread.Sleep(500);
-                        RunBlackBot();
-                    }
-                    else
-                        SwitchPlayer();
-                    stopwatch.Stop();
+                   if (gameBoard.GetAvailableMoves(OppositeState).Count == 0)
+                   {
+                       Update();
+                       Thread.Sleep(500);
+                       RunBlackBot();
+                   }
+                   else
+                       SwitchPlayer();
+                   stopwatch.Stop();
 
-                    if (whiteBot)
-                    {
-                        Update();
-                        Thread.Sleep(500);
-                        RunWhiteBot();
-                    }
-                });
+                   if (whiteBot)
+                   {
+                       Update();
+                       Thread.Sleep(500);
+                       RunWhiteBot();
+                   }
+               });
             });
         }
+
         private void RunWhiteBot()
         {
             Task.Run(async () =>
@@ -313,28 +314,28 @@ namespace Othello
                         break;
                 }
                 label5.Invoke(() =>
-                {
-                    PreformAfterMove();
-                    if (IsGameOver())
-                        return;
+                 {
+                     PreformAfterMove();
+                     if (IsGameOver())
+                         return;
 
-                    if (gameBoard.GetAvailableMoves(OppositeState).Count == 0)
-                    {
-                        Update();
-                        Thread.Sleep(1000);
-                        RunWhiteBot();
-                    }
-                    else
-                        SwitchPlayer();
-                    stopwatch.Stop();
+                     if (gameBoard.GetAvailableMoves(OppositeState).Count == 0)
+                     {
+                         Update();
+                         Thread.Sleep(1000);
+                         RunWhiteBot();
+                     }
+                     else
+                         SwitchPlayer();
+                     stopwatch.Stop();
 
-                    if (blackBot)
-                    {
-                        Update();
-                        Thread.Sleep(1000);
-                        RunBlackBot();
-                    }
-                });
+                     if (blackBot)
+                     {
+                         Update();
+                         Thread.Sleep(1000);
+                         RunBlackBot();
+                     }
+                 });
             });
         }
 
