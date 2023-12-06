@@ -30,7 +30,7 @@ namespace Othello
         public bool showAvailiableMoves = true;
 
         int genBlack = 3;
-        int genWhite = 3;
+        int genWhite = 2;
 
         RandomBot randomBot = new RandomBot();
         BiasedBot biasedBot = new BiasedBot();
@@ -59,7 +59,6 @@ namespace Othello
                 ShowAvailiableMoves(gameBoard.GetAvailableMoves(CurrentState));
             }
             Positions.Text = "Positions reached: " + 0;
-            Depth.Text = "Depth: " + AI.maxDepth;
             Eval.Text = "Evaluation: " + 0;
             Moves.Text = "Pieces on the board: " + gameBoard.moves.ToString();
             Board tempPosition = new Board(gameBoard);
@@ -133,13 +132,15 @@ namespace Othello
             HideAvailiableMoves(); // hide previously available moves and update them later after we made the new move
             DisplayBoard(); // display the new postion on the screen
             DisplayScore(); // displays the number of pieces each player has on the board
-            Depth.Text = "Depth: " + AI.maxDepth.ToString();
+            Depth.Text = "Depth: ";
             Positions.Text = "Positions searched: " + aI.nPositions.ToString(); // show the amount of postions that the ai went through
+            var curAvailableMoves = gameBoard.GetAvailableMoves(CurrentState);
+            var oppAvailableMoves = gameBoard.GetAvailableMoves(OppositeState);
             if (showAvailiableMoves) // if the option to see the next moves is activated then display then
             {
-                ShowAvailiableMoves(gameBoard.GetAvailableMoves(OppositeState)); // show the next players moves
+                ShowAvailiableMoves(oppAvailableMoves); // show the next players moves
             }
-            float eval = (float)gameBoard.EvaluatePosition(OppositeState);
+            float eval = (float)gameBoard.EvaluatePosition(OppositeState, curAvailableMoves.Count);
             Eval.Text = "Evaluation: " + eval.ToString();
             Moves.Text = "Pieces on the board: " + gameBoard.moves.ToString();
             Time.Text = "Time per move: " + stopwatch.ElapsedMilliseconds.ToString() + " ms";
@@ -236,6 +237,8 @@ namespace Othello
             int countWhite = gameBoard.CountScore(2);
             int countBlack = gameBoard.CountScore(1);
 
+            DisplayScore();
+
             if (countWhite > countBlack)
             {
                 Winner.Text = "White has won!";
@@ -279,7 +282,7 @@ namespace Othello
                    if (gameBoard.GetAvailableMoves(OppositeState).Count == 0)
                    {
                        Update();
-                       Thread.Sleep(500);
+                       Thread.Sleep(50);
                        RunBlackBot();
                    }
                    else
@@ -289,7 +292,7 @@ namespace Othello
                    if (whiteBot)
                    {
                        Update();
-                       Thread.Sleep(500);
+                       Thread.Sleep(50);
                        RunWhiteBot();
                    }
                });
@@ -322,7 +325,7 @@ namespace Othello
                      if (gameBoard.GetAvailableMoves(OppositeState).Count == 0)
                      {
                          Update();
-                         Thread.Sleep(1000);
+                         Thread.Sleep(50);
                          RunWhiteBot();
                      }
                      else
@@ -332,7 +335,7 @@ namespace Othello
                      if (blackBot)
                      {
                          Update();
-                         Thread.Sleep(1000);
+                         Thread.Sleep(50);
                          RunBlackBot();
                      }
                  });

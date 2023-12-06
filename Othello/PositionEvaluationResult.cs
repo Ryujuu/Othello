@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace Othello
 {
-    public class PostionEvaluationResult
+    public class PositionEvaluationResult
     {
         public Position? coordinates;
         public double score;
+        public int depth;
     }
 }

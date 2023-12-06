@@ -8,18 +8,21 @@ namespace Othello
 {
     internal class BiasedBot
     {
+        private int[,] boardWeight = {
+        { 100, -10, 11, 6, 6, 11, -10, 100 },
+        { -10, -20, 1, 2, 2, 1, -20, -10},
+        { 10, 1, 5, 4, 4, 5, 1, 10},
+        { 6, 2, 4, 2, 2, 4, 2, 6},
+        { 6, 2, 4, 2, 2, 4, 2, 6 },
+        { 10, 1, 5, 4, 4, 5, 1, 10 },
+        { -10, -20, 1, 2, 2, 1, -20, -10 },
+        { 100, -10, 11, 6, 6, 11, -10, 100 }
+        };
         public void Run(Board gameBoard, int CurrentState)
         {
-            Random random = new Random();
             var moves = gameBoard.GetAvailableMoves(CurrentState);
-            var move = moves.OrderByDescending(x =>
-            gameBoard.GetAffectedDiscs(x.x, x.y, CurrentState).Count *
-            (x.x == 0 || x.x == 7 ? 3 : 1) *
-            (x.y == 0 || x.y == 7 ? 3 : 1) *
-            (x.x == 1 || x.x == 6 ? 0.3 : 1) *
-            (x.y == 1 || x.y == 6 ? 0.3 : 1) *
-            (x.x > 1 || x.x < 6 ? 1.5 : 1) *
-            (x.y > 1 || x.y < 6 ? 1.5 : 1)).FirstOrDefault();
+            var sortedMoves = moves.OrderByDescending(move => boardWeight[move.x, move.y]).ToList();
+            var move = sortedMoves.FirstOrDefault();
 
             if (move == null) return;
 

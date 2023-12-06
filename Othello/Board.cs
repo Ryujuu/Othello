@@ -102,37 +102,37 @@ namespace Othello
                 }
             }
         }
-        public double EvaluatePosition(int player)
+        public double EvaluatePosition(int player, int curPlayersNumberOfMoves)
         {
-            double Eval = 0;
+            double eval = 0;
             
-            if (moves < (64 - AI.maxDepth))
+            if (moves < 64 - AI.maxDepth)
             {
-                Eval = EarlyToMidGameEval(player, Eval);
+                eval = EarlyToMidGameEval(player, eval, curPlayersNumberOfMoves);
             }
             else
             {
-                Eval = EndGameEval(player, Eval);
+                eval = EndGameEval(player, eval);
             }
-            return Eval;
+            return eval;
         }
         
-        private double EarlyToMidGameEval(int player, double Eval)
+        private double EarlyToMidGameEval(int player, double eval, int curMoves)
         {
             // more moves is still valuble but corners and sides are high priority
 
             int oppositePlayer = player == 1 ? 2 : 1;
-            Eval = (CountScore(player) - CountScore(oppositePlayer)) * 0.75;
+            eval = CountScore(player) - CountScore(oppositePlayer);
 
-            Eval += position[0, 0] == player ? 25 : 0;
-            Eval += position[gridSize - 1, gridSize - 1] == player ? 25 : 0;
-            Eval += position[0, gridSize - 1] == player ? 25 : 0;
-            Eval += position[gridSize - 1, 0] == player ? 25 : 0;
+            eval += position[0, 0] == player ? 50 : 0;
+            eval += position[gridSize - 1, gridSize - 1] == player ? 50 : 0;
+            eval += position[0, gridSize - 1] == player ? 50 : 0;
+            eval += position[gridSize - 1, 0] == player ? 50 : 0;
 
-            Eval -= position[0, 0] == oppositePlayer ? 25 : 0;
-            Eval -= position[gridSize - 1, gridSize - 1] == oppositePlayer ? 25 : 0;
-            Eval -= position[0, gridSize - 1] == oppositePlayer ? 25 : 0;
-            Eval -= position[gridSize - 1, 0] == oppositePlayer ? 25 : 0;
+            eval -= position[0, 0] == oppositePlayer ? 50 : 0;
+            eval -= position[gridSize - 1, gridSize - 1] == oppositePlayer ? 50 : 0;
+            eval -= position[0, gridSize - 1] == oppositePlayer ? 50 : 0;
+            eval -= position[gridSize - 1, 0] == oppositePlayer ? 50 : 0;
 
             int playerTilesOnSides = 0;
             int oppositeplayerTilesOnSides = 0;
@@ -161,49 +161,44 @@ namespace Othello
                     oppositeplayerTilesOnSides++;
             }
 
-            Eval += playerTilesOnSides * 2;
-            Eval -= oppositeplayerTilesOnSides * 2;
+            eval += playerTilesOnSides * 2;
+            eval -= oppositeplayerTilesOnSides * 2;
 
 
             if (position[0,0] == 0)
             {
-                Eval -= position[1 ,0] == player ? 5 : 0;
-                Eval -= position[0, 1] == player ? 5 : 0;
-                Eval -= position[1, 1] == player ? 15 : 0;
+                eval -= position[1 ,0] == player ? 5 : 0;
+                eval -= position[0, 1] == player ? 5 : 0;
+                eval -= position[1, 1] == player ? 15 : 0;
             }
             if (position[7, 0] == 0)
             {
-                Eval -= position[6, 0] == player ? 5 : 0;
-                Eval -= position[7, 1] == player ? 5 : 0;
-                Eval -= position[6, 1] == player ? 15 : 0;
+                eval -= position[6, 0] == player ? 5 : 0;
+                eval -= position[7, 1] == player ? 5 : 0;
+                eval -= position[6, 1] == player ? 15 : 0;
             }                                 
             if (position[0, 7] == 0)          
             {                                 
-                Eval -= position[1, 7] == player ? 5 : 0;
-                Eval -= position[0, 6] == player ? 5 : 0;
-                Eval -= position[1, 6] == player ? 15 : 0;
+                eval -= position[1, 7] == player ? 5 : 0;
+                eval -= position[0, 6] == player ? 5 : 0;
+                eval -= position[1, 6] == player ? 15 : 0;
             }                                 
             if (position[7, 7] == 0)          
             {                                 
-                Eval -= position[6, 7] == player ? 5 : 0;
-                Eval -= position[7, 6] == player ? 5 : 0;
-                Eval -= position[6, 6] == player ? 15 : 0;
+                eval -= position[6, 7] == player ? 5 : 0;
+                eval -= position[7, 6] == player ? 5 : 0;
+                eval -= position[6, 6] == player ? 15 : 0;
             }
 
-
-            var curMoves = GetAvailableMoves(player).Count;
-            var oppMoves = GetAvailableMoves(oppositePlayer).Count;
-
-            Eval += curMoves * 2;
-            Eval -= oppMoves * 2;
+            eval += curMoves / 2;
 
             if (StateHasWon(oppositePlayer))
-                Eval -= 1000;
+                eval -= 1000;
 
             if (StateHasWon(player))
-                Eval += 1000;
+                eval += 1000;
 
-            return Eval;
+            return eval;
         }
         private double EndGameEval(int player, double Eval)
         {
