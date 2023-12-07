@@ -30,7 +30,7 @@ namespace Othello
         public bool showAvailiableMoves = true;
 
         int genBlack = 3;
-        int genWhite = 2;
+        int genWhite = 1;
 
         RandomBot randomBot = new RandomBot();
         BiasedBot biasedBot = new BiasedBot();

@@ -11,7 +11,7 @@ namespace Othello
     internal class AI
     {
         public int nPositions = 0;
-        public static int maxDepth = 6;
+        public static int maxDepth = 10;
         public int positionsSearched = 0;
         public int movesMade = 0;
         Stopwatch moveStopWatch = new Stopwatch();
@@ -51,9 +51,9 @@ namespace Othello
             System.Diagnostics.Debug.WriteLine($"The avg number of positions searched per move is {positionsSearched / movesMade} so far at a depth of {move.depth} taking an avg of {allMovesStopWatch.ElapsedMilliseconds / movesMade}ms");
             System.Diagnostics.Debug.WriteLine($"The final eval {move.depth} moves deep is {move.score}");
             // Print eval results to a json file
-            var json = JsonConvert.SerializeObject(evalResults);
-            File.WriteAllText("ai_dbg.json", json);
-            evalResults.Clear();
+            //var json = JsonConvert.SerializeObject(evalResults);
+            //File.WriteAllText("ai_dbg.json", json);
+            //evalResults.Clear();
 
             moveStopWatch.Reset();
         }
@@ -88,7 +88,7 @@ namespace Othello
                     Board newBoard = new Board(gameBoard);
                     newBoard.MakeMove(move, currentPlayer);
                     int oppositePlayer = currentPlayer == 1 ? 2 : 1;
-                    var eval = Minimax(newBoard, depth + 1, double.MinValue, double.MaxValue, MinMaxMode.Min, currentPlayer);
+                    var eval = Minimax(newBoard, depth + 1, double.MinValue, double.MaxValue, MinMaxMode.Min, oppositePlayer);
                     return new PositionEvaluationResult
                     {
                         coordinates = move,
@@ -131,11 +131,11 @@ namespace Othello
                     score = gamePosition.EvaluatePosition(maximizingPlayer, availableMoves.Count),
                     depth = depth
                 };
-                evalResults.Add(new EvalDebuggingResult
-                {
-                    eval = evalResult,
-                    gameBoard = gamePosition
-                });
+                //evalResults.Add(new EvalDebuggingResult
+                //{
+                //    eval = evalResult,
+                //    gameBoard = gamePosition
+                //});
                 return evalResult;
             }
 
