@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using Newtonsoft.Json;
 
 namespace Othello
 {
@@ -36,7 +37,7 @@ namespace Othello
 
             allMovesStopWatch.Start();
             moveStopWatch.Start();
-            var move = Minimax(gameBoard, 0, double.MinValue, double.MaxValue, true, currentState, availableMoves);
+            var move = Minimax(gameBoard, 0, double.MinValue, double.MaxValue, MinMaxMode.Max, currentState, availableMoves);
             allMovesStopWatch.Stop();
             moveStopWatch.Stop();
 
@@ -46,14 +47,18 @@ namespace Othello
 
             positionsSearched += nPositions;
 
-            System.Diagnostics.Debug.WriteLine($"On move {movesMade}, {nPositions} where searched taking {moveStopWatch.ElapsedMilliseconds}ms");
+            System.Diagnostics.Debug.WriteLine($"On move {movesMade} the bot tried to play ({move.coordinates.x}, {move.coordinates.y}) and {nPositions} where searched taking {moveStopWatch.ElapsedMilliseconds}ms");
             System.Diagnostics.Debug.WriteLine($"The avg number of positions searched per move is {positionsSearched / movesMade} so far at a depth of {move.depth} taking an avg of {allMovesStopWatch.ElapsedMilliseconds / movesMade}ms");
             System.Diagnostics.Debug.WriteLine($"The final eval {move.depth} moves deep is {move.score}");
+            // Print eval results to a json file
+            var json = JsonConvert.SerializeObject(evalResults);
+            File.WriteAllText("ai_dbg.json", json);
+            evalResults.Clear();
 
             moveStopWatch.Reset();
         }
 
-        private PositionEvaluationResult ManualFirstDepth(Board gamePosition, List<Position> moves, int player, int curPlayersNumberOfMoves, int depth)
+        private PositionEvaluationResult ManualFirstDepth(Board gamePosition, int depth, int player, int curPlayersNumberOfMoves, List<Position> moves)
         {
             List<PositionEvaluationResult> bestToWorstMoves = new List<PositionEvaluationResult>();
             foreach (var move in moves)
@@ -67,12 +72,12 @@ namespace Othello
             }
             var moveToSearch = bestToWorstMoves.OrderByDescending(x => x.score).Select(y => y.coordinates).ToList();
 
-            var evaluation = RunParallel(gamePosition, player, moveToSearch, depth);
+            var evaluation = RunParallel(gamePosition, depth, player, moveToSearch);
 
             return evaluation;
         }
 
-        public PositionEvaluationResult RunParallel(Board gameBoard, int currentState, List<Position> availableMoves, int depth)
+        public PositionEvaluationResult RunParallel(Board gameBoard, int depth, int currentPlayer, List<Position> availableMoves)
         {
             var tasks = new List<Task<PositionEvaluationResult>>();
 
@@ -81,8 +86,15 @@ namespace Othello
                 var task = Task.Run(() =>
                 {
                     Board newBoard = new Board(gameBoard);
-                    newBoard.MakeMove(move, currentState);
-                    return Minimax(newBoard, depth + 1, double.MinValue, double.MaxValue, false, currentState, newBoard.GetAvailableMoves(currentState));
+                    newBoard.MakeMove(move, currentPlayer);
+                    int oppositePlayer = currentPlayer == 1 ? 2 : 1;
+                    var eval = Minimax(newBoard, depth + 1, double.MinValue, double.MaxValue, MinMaxMode.Min, currentPlayer);
+                    return new PositionEvaluationResult
+                    {
+                        coordinates = move,
+                        score = eval.score,
+                        depth = eval.depth
+                    };
                 });
 
                 tasks.Add(task);
@@ -93,120 +105,133 @@ namespace Othello
             return tasks.Select(t => t.Result).OrderByDescending(r => r.score).FirstOrDefault();
         }
 
-        private PositionEvaluationResult Minimax(Board gamePosition, int depth, double alpha, double beta, bool maximizingplayer, int player, List<Position> availableMoves)
+        public struct EvalDebuggingResult
         {
-            int oppositePlayer = player == 1 ? 2 : 1;
+            public PositionEvaluationResult eval;
+            public Board gameBoard;
+        }
 
-            var availableMovesOppPlayer = gamePosition.GetAvailableMoves(oppositePlayer);
-            int curPlayerMoveCount = availableMoves.Count;
+        public List<EvalDebuggingResult> evalResults = new List<EvalDebuggingResult>();
 
-            if (depth == maxDepth || gamePosition.moves == Board.gridSize * Board.gridSize || gamePosition.StateHasWon(player) || gamePosition.StateHasWon(oppositePlayer))      // if the position is won AKA all pieces on one side has been captured return
+        private PositionEvaluationResult Minimax(Board gamePosition, int depth, double alpha, double beta, MinMaxMode minMaxMode, int currentPlayer, List<Position> availableMoves = null)
+        {
+            if (availableMoves == null)
+                availableMoves = gamePosition.GetAvailableMoves(currentPlayer); // find all positions where we can make a move
+            availableMoves = OptimizeMoveOrder(availableMoves); // sort the moves based on their score retrieved from boardWeight to try to optimize it a little bit
+            int oppositePlayer = currentPlayer == 1 ? 2 : 1;
+
+            var maximizingPlayer = minMaxMode == MinMaxMode.Max ? currentPlayer : oppositePlayer;
+
+            if (depth == maxDepth || gamePosition.moves == Board.gridSize * Board.gridSize || gamePosition.StateHasWon(currentPlayer) || gamePosition.StateHasWon(oppositePlayer))      // if the position is won AKA all pieces on one side has been captured return
             {
-                nPositions++;
-                PositionEvaluationResult result = new()
+                // We have reached the end of our search, evaluate the position
+                nPositions++; // Increment the total position search counter
+                var evalResult = new PositionEvaluationResult()
                 {
-                    score = gamePosition.EvaluatePosition(player, curPlayerMoveCount),
+                    score = gamePosition.EvaluatePosition(maximizingPlayer, availableMoves.Count),
                     depth = depth
                 };
-                
-
-                return result;
+                evalResults.Add(new EvalDebuggingResult
+                {
+                    eval = evalResult,
+                    gameBoard = gamePosition
+                });
+                return evalResult;
             }
 
+            // If we are at the first step, evaluate the first step to allow for more efficient \alpha/\beta pruning
             PositionEvaluationResult evaluation;
             if (depth == 0)
             {
-                evaluation = ManualFirstDepth(gamePosition, availableMoves, player, curPlayerMoveCount, depth);
+                evaluation = ManualFirstDepth(gamePosition, depth, currentPlayer, availableMoves.Count, availableMoves);
             }
             else
             {
-                if (maximizingplayer)
+                if (minMaxMode == MinMaxMode.Max)
                 {
-                    return MaximizingPlayer(gamePosition, depth, alpha, beta, player, oppositePlayer, availableMoves);
+                    return MaximizingPlayer(gamePosition, depth, alpha, beta, currentPlayer, availableMoves);
                 }
                 else
                 {
-                    return MinimizingPlayer(gamePosition, depth, alpha, beta, player, oppositePlayer, availableMoves);
+                    return MinimizingPlayer(gamePosition, depth, alpha, beta, currentPlayer, availableMoves);
                 }
             }
             return evaluation;
 
         }
 
-        private PositionEvaluationResult MaximizingPlayer(Board gamePosition, int depth, double alpha, double beta, int player, int oppositePlayer, List<Position> availableMoves)
+        private PositionEvaluationResult MaximizingPlayer(Board gamePosition, int depth, double alpha, double beta, int maximizingPlayer, List<Position> availableMoves)
         {
-            double maxEval = double.MinValue;
-            var evaluation = new PositionEvaluationResult();
-
+            var minimizingPlayer = maximizingPlayer == 1 ? 2 : 1;
+            var evaluation = new PositionEvaluationResult
+            {
+                score = double.MinValue
+            };
             foreach (var move in availableMoves)
             {
                 // Make a copy of the board
                 Board generationBoard = new Board(gamePosition); // This will copy the board data
-                                                                 // Make the "move" on the board
+                generationBoard.MakeMove(move, maximizingPlayer); // Make the "move" on the board
 
-                generationBoard.MakeMove(move, player);
-
-                PositionEvaluationResult eval;
-                var availiableMoves = generationBoard.GetAvailableMoves(oppositePlayer); // check if there are any moves that opponent can make
-                if (availiableMoves.Any()) // if there are moves ==>
+                PositionEvaluationResult currentEval;
+                var opponentMoves = generationBoard.GetAvailableMoves(minimizingPlayer); // check if there are any moves that opponent can make
+                if (opponentMoves.Any()) // if there are moves ==>
                 {
-                    availableMoves = OptimizeMoveOrder(availiableMoves);
-                    eval = Minimax(generationBoard, depth + 1, alpha, beta, false, player, availiableMoves); // play as minimizing player during next move
+                    currentEval = Minimax(generationBoard, depth + 1, alpha, beta, MinMaxMode.Min, minimizingPlayer, opponentMoves); // play as minimizing player during next move
                 }
                 else // opponent has no moves and turn goes back
                 {
-                    availableMoves = generationBoard.GetAvailableMoves(player);
-                    availableMoves = OptimizeMoveOrder(availiableMoves);
-                    eval = Minimax(generationBoard, depth + 1, alpha, beta, true, player, availableMoves); // play again as maximizing player
+                    currentEval = Minimax(generationBoard, depth + 1, alpha, beta, MinMaxMode.Max, maximizingPlayer); // play again as maximizing player
                 }
-                if (maxEval < eval.score) // if the previously highest score is less then the positions score
+                if (evaluation.score < currentEval.score) // if the previously highest score is less then the positions score
                 {
                     evaluation.coordinates = move; // save cordinates of the move
-                    maxEval = eval.score; // save the new score as the highest score
+                    evaluation.depth = currentEval.depth;
+                    evaluation.score = currentEval.score; // save the new score as the highest score
                 }
-                alpha = Math.Max(alpha, eval.score);
+                alpha = Math.Max(alpha, currentEval.score);
                 if (beta <= alpha)
                     break;
             }
 
-            evaluation.score = maxEval;
             return evaluation;
         }
 
-        private PositionEvaluationResult MinimizingPlayer(Board gamePosition, int depth, double alpha, double beta, int player, int oppositePlayer, List<Position> availableMoves)
+        private PositionEvaluationResult MinimizingPlayer(Board gamePosition, int depth, double alpha, double beta, int minimizingPlayer, List<Position> availableMoves)
         {
-            double minEval = double.MaxValue;
-            var evaluation = new PositionEvaluationResult();
+            var maximizingPlayer = minimizingPlayer == 1 ? 2 : 1;
+            var evaluation = new PositionEvaluationResult
+            {
+                score = double.MaxValue
+            };
 
             foreach (var move in availableMoves)
             {
                 Board generationBoard = new Board(gamePosition);    // This will copy the board data
-                generationBoard.MakeMove(move, oppositePlayer);             // Make the "move" on the board
+                generationBoard.MakeMove(move, minimizingPlayer);             // Make the "move" on the board
 
-                PositionEvaluationResult eval;
-                var availiableMoves = generationBoard.GetAvailableMoves(player); // check if there are any moves that opponent can make
-                if (availiableMoves.Any()) // if there are moves ==>
+                PositionEvaluationResult currentEval;
+                var opponentMoves = generationBoard.GetAvailableMoves(maximizingPlayer); // check if there are any moves that opponent can make
+
+                if (opponentMoves.Any()) // if there are moves ==>
                 {
-                    availableMoves = OptimizeMoveOrder(availiableMoves);
-                    eval = Minimax(generationBoard, depth + 1, alpha, beta, true, player, availiableMoves); // play as maximizing player during next move
+                    currentEval = Minimax(generationBoard, depth + 1, alpha, beta, MinMaxMode.Max, maximizingPlayer, opponentMoves); // play as minimizing player during next move
                 }
                 else // opponent has no moves and turn goes back
                 {
-                    availableMoves = generationBoard.GetAvailableMoves(oppositePlayer);
-                    availableMoves = OptimizeMoveOrder(availiableMoves);
-                    eval = Minimax(generationBoard, depth + 1, alpha, beta, false, player, availableMoves); // play again as minimizing player
+                    currentEval = Minimax(generationBoard, depth + 1, alpha, beta, MinMaxMode.Min, minimizingPlayer); // play again as minimizing player
                 }
-
-                if (minEval > eval.score) // if the previously lowest score is larger then the positions score
+                if (evaluation.score > currentEval.score)
                 {
                     evaluation.coordinates = move; // save cordinates of the move
-                    minEval = eval.score; // save the new lowest score
+                    evaluation.depth = currentEval.depth;
+                    evaluation.score = currentEval.score; // save the new score as the highest score
                 }
-                beta = Math.Min(beta, eval.score);
+
+                beta = Math.Min(beta, currentEval.score);
                 if (beta <= alpha)
                     break;
             }
-            evaluation.score = minEval;
             return evaluation;
         }
 
@@ -217,5 +242,11 @@ namespace Othello
 
             return sortedMoves;
         }
+    }
+
+    enum MinMaxMode
+    {
+        Min,
+        Max
     }
 }
