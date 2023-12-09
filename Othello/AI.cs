@@ -11,11 +11,12 @@ namespace Othello
     internal class AI
     {
         public int nPositions = 0;
-        public static int maxDepth = 10;
+        public static int maxDepth = 8;
         public int positionsSearched = 0;
-        public int movesMade = 0;
+        public int movesMade = 4;
         Stopwatch moveStopWatch = new Stopwatch();
         Stopwatch allMovesStopWatch = new Stopwatch();
+        int timeLimit = 1000;
 
         private int[,] boardWeight = {
         { 100, -10, 11, 6, 6, 11, -10, 100 },
@@ -34,12 +35,31 @@ namespace Othello
             movesMade++;
 
             var availableMoves = gameBoard.GetAvailableMoves(currentState);
+            if (availableMoves.Count == 0)
+                return;
 
             allMovesStopWatch.Start();
             moveStopWatch.Start();
-            var move = Minimax(gameBoard, 0, double.MinValue, double.MaxValue, MinMaxMode.Max, currentState, availableMoves);
+
+            int allowedDepth = 1;
+            var move = new PositionEvaluationResult();
+            Dictionary<int, PositionEvaluationResult> bestMoveAfterCertainDepth = new Dictionary<int, PositionEvaluationResult>();
+
+            while (moveStopWatch.ElapsedMilliseconds < timeLimit && (64 - movesMade) >= allowedDepth)
+            {
+                move = Minimax(gameBoard, 0, allowedDepth, double.MinValue, double.MaxValue, MinMaxMode.Max, currentState, availableMoves);
+                if (moveStopWatch.ElapsedMilliseconds < timeLimit)
+                {
+                    bestMoveAfterCertainDepth[allowedDepth] = move;
+                    System.Diagnostics.Debug.WriteLine($"After looking {allowedDepth} moves deep the best move is row {move.coordinates.x + 1}, column {move.coordinates.y + 1}");
+                }
+                allowedDepth += 1;
+            }
             allMovesStopWatch.Stop();
             moveStopWatch.Stop();
+
+            int highestCompletedDepth = bestMoveAfterCertainDepth.Keys.Max();
+            move = bestMoveAfterCertainDepth[highestCompletedDepth];
 
             if (move.coordinates == null) return;
 
@@ -47,8 +67,8 @@ namespace Othello
 
             positionsSearched += nPositions;
 
-            System.Diagnostics.Debug.WriteLine($"On move {movesMade} the bot tried to play ({move.coordinates.x}, {move.coordinates.y}) and {nPositions} where searched taking {moveStopWatch.ElapsedMilliseconds}ms");
-            System.Diagnostics.Debug.WriteLine($"The avg number of positions searched per move is {positionsSearched / movesMade} so far at a depth of {move.depth} taking an avg of {allMovesStopWatch.ElapsedMilliseconds / movesMade}ms");
+            System.Diagnostics.Debug.WriteLine($"On move {movesMade} the bot played row {move.coordinates.x + 1}, column {move.coordinates.y + 1} and {nPositions} positions where searched taking {moveStopWatch.ElapsedMilliseconds}ms");
+            System.Diagnostics.Debug.WriteLine($"The avg number of positions searched per move is {positionsSearched / movesMade} so far at a depth of {move.depth} taking an avg of {allMovesStopWatch.ElapsedMilliseconds / (movesMade - 4)}ms");
             System.Diagnostics.Debug.WriteLine($"The final eval {move.depth} moves deep is {move.score}");
             // Print eval results to a json file
             //var json = JsonConvert.SerializeObject(evalResults);
@@ -58,26 +78,28 @@ namespace Othello
             moveStopWatch.Reset();
         }
 
-        private PositionEvaluationResult ManualFirstDepth(Board gamePosition, int depth, int player, int curPlayersNumberOfMoves, List<Position> moves)
+        private PositionEvaluationResult ManualFirstDepth(Board gamePosition, int currentDepth, int allowedDepth, int player, int curPlayersNumberOfMoves, List<Position> moves)
         {
             List<PositionEvaluationResult> bestToWorstMoves = new List<PositionEvaluationResult>();
+            int oppositePlayer = player == 1 ? 2 : 1;
             foreach (var move in moves)
             {
                 Board firstGenBoard = new Board(gamePosition);
                 firstGenBoard.MakeMove(move, player);
+                var newMoves = firstGenBoard.GetAvailableMoves(oppositePlayer);
                 PositionEvaluationResult postion1 = new PositionEvaluationResult();
-                postion1.score = firstGenBoard.EvaluatePosition(player, curPlayersNumberOfMoves);
+                postion1.score = firstGenBoard.EvaluatePosition(oppositePlayer, newMoves);
                 postion1.coordinates = move;
                 bestToWorstMoves.Add(postion1);
             }
             var moveToSearch = bestToWorstMoves.OrderByDescending(x => x.score).Select(y => y.coordinates).ToList();
 
-            var evaluation = RunParallel(gamePosition, depth, player, moveToSearch);
+            var evaluation = RunParallel(gamePosition, currentDepth, allowedDepth, player, moveToSearch);
 
             return evaluation;
         }
 
-        public PositionEvaluationResult RunParallel(Board gameBoard, int depth, int currentPlayer, List<Position> availableMoves)
+        public PositionEvaluationResult RunParallel(Board gameBoard, int currentDepth, int allowedDepth, int currentPlayer, List<Position> availableMoves)
         {
             var tasks = new List<Task<PositionEvaluationResult>>();
 
@@ -88,7 +110,7 @@ namespace Othello
                     Board newBoard = new Board(gameBoard);
                     newBoard.MakeMove(move, currentPlayer);
                     int oppositePlayer = currentPlayer == 1 ? 2 : 1;
-                    var eval = Minimax(newBoard, depth + 1, double.MinValue, double.MaxValue, MinMaxMode.Min, oppositePlayer);
+                    var eval = Minimax(newBoard, currentDepth + 1, allowedDepth, double.MinValue, double.MaxValue, MinMaxMode.Min, oppositePlayer);
                     return new PositionEvaluationResult
                     {
                         coordinates = move,
@@ -113,7 +135,7 @@ namespace Othello
 
         public List<EvalDebuggingResult> evalResults = new List<EvalDebuggingResult>();
 
-        private PositionEvaluationResult Minimax(Board gamePosition, int depth, double alpha, double beta, MinMaxMode minMaxMode, int currentPlayer, List<Position> availableMoves = null)
+        private PositionEvaluationResult Minimax(Board gamePosition, int currentDepth, int allowedDepth, double alpha, double beta, MinMaxMode minMaxMode, int currentPlayer, List<Position> availableMoves = null)
         {
             if (availableMoves == null)
                 availableMoves = gamePosition.GetAvailableMoves(currentPlayer); // find all positions where we can make a move
@@ -122,14 +144,14 @@ namespace Othello
 
             var maximizingPlayer = minMaxMode == MinMaxMode.Max ? currentPlayer : oppositePlayer;
 
-            if (depth == maxDepth || gamePosition.moves == Board.gridSize * Board.gridSize || gamePosition.StateHasWon(currentPlayer) || gamePosition.StateHasWon(oppositePlayer))      // if the position is won AKA all pieces on one side has been captured return
+            if (currentDepth == allowedDepth || moveStopWatch.ElapsedMilliseconds >= timeLimit || gamePosition.moves == Board.gridSize * Board.gridSize || gamePosition.StateHasWon(currentPlayer) || gamePosition.StateHasWon(oppositePlayer))      // if the position is won AKA all pieces on one side has been captured return
             {
                 // We have reached the end of our search, evaluate the position
                 nPositions++; // Increment the total position search counter
                 var evalResult = new PositionEvaluationResult()
                 {
-                    score = gamePosition.EvaluatePosition(maximizingPlayer, availableMoves.Count),
-                    depth = depth
+                    score = gamePosition.EvaluatePosition(maximizingPlayer, availableMoves),
+                    depth = currentDepth
                 };
                 //evalResults.Add(new EvalDebuggingResult
                 //{
@@ -141,26 +163,26 @@ namespace Othello
 
             // If we are at the first step, evaluate the first step to allow for more efficient \alpha/\beta pruning
             PositionEvaluationResult evaluation;
-            if (depth == 0)
+            if (currentDepth == 0)
             {
-                evaluation = ManualFirstDepth(gamePosition, depth, currentPlayer, availableMoves.Count, availableMoves);
+                evaluation = ManualFirstDepth(gamePosition, currentDepth, allowedDepth, currentPlayer, availableMoves.Count, availableMoves);
             }
             else
             {
                 if (minMaxMode == MinMaxMode.Max)
                 {
-                    return MaximizingPlayer(gamePosition, depth, alpha, beta, currentPlayer, availableMoves);
+                    return MaximizingPlayer(gamePosition, currentDepth, allowedDepth, alpha, beta, currentPlayer, availableMoves);
                 }
                 else
                 {
-                    return MinimizingPlayer(gamePosition, depth, alpha, beta, currentPlayer, availableMoves);
+                    return MinimizingPlayer(gamePosition, currentDepth, allowedDepth, alpha, beta, currentPlayer, availableMoves);
                 }
             }
             return evaluation;
 
         }
 
-        private PositionEvaluationResult MaximizingPlayer(Board gamePosition, int depth, double alpha, double beta, int maximizingPlayer, List<Position> availableMoves)
+        private PositionEvaluationResult MaximizingPlayer(Board gamePosition, int depth, int allowedDepth, double alpha, double beta, int maximizingPlayer, List<Position> availableMoves)
         {
             var minimizingPlayer = maximizingPlayer == 1 ? 2 : 1;
             var evaluation = new PositionEvaluationResult
@@ -177,11 +199,11 @@ namespace Othello
                 var opponentMoves = generationBoard.GetAvailableMoves(minimizingPlayer); // check if there are any moves that opponent can make
                 if (opponentMoves.Any()) // if there are moves ==>
                 {
-                    currentEval = Minimax(generationBoard, depth + 1, alpha, beta, MinMaxMode.Min, minimizingPlayer, opponentMoves); // play as minimizing player during next move
+                    currentEval = Minimax(generationBoard, depth + 1, allowedDepth, alpha, beta, MinMaxMode.Min, minimizingPlayer, opponentMoves); // play as minimizing player during next move
                 }
                 else // opponent has no moves and turn goes back
                 {
-                    currentEval = Minimax(generationBoard, depth + 1, alpha, beta, MinMaxMode.Max, maximizingPlayer); // play again as maximizing player
+                    currentEval = Minimax(generationBoard, depth + 1, allowedDepth, alpha, beta, MinMaxMode.Max, maximizingPlayer); // play again as maximizing player
                 }
                 if (evaluation.score < currentEval.score) // if the previously highest score is less then the positions score
                 {
@@ -197,7 +219,7 @@ namespace Othello
             return evaluation;
         }
 
-        private PositionEvaluationResult MinimizingPlayer(Board gamePosition, int depth, double alpha, double beta, int minimizingPlayer, List<Position> availableMoves)
+        private PositionEvaluationResult MinimizingPlayer(Board gamePosition, int depth, int allowedDepth, double alpha, double beta, int minimizingPlayer, List<Position> availableMoves)
         {
             var maximizingPlayer = minimizingPlayer == 1 ? 2 : 1;
             var evaluation = new PositionEvaluationResult
@@ -215,11 +237,11 @@ namespace Othello
 
                 if (opponentMoves.Any()) // if there are moves ==>
                 {
-                    currentEval = Minimax(generationBoard, depth + 1, alpha, beta, MinMaxMode.Max, maximizingPlayer, opponentMoves); // play as minimizing player during next move
+                    currentEval = Minimax(generationBoard, depth + 1, allowedDepth, alpha, beta, MinMaxMode.Max, maximizingPlayer, opponentMoves); // play as minimizing player during next move
                 }
                 else // opponent has no moves and turn goes back
                 {
-                    currentEval = Minimax(generationBoard, depth + 1, alpha, beta, MinMaxMode.Min, minimizingPlayer); // play again as minimizing player
+                    currentEval = Minimax(generationBoard, depth + 1, allowedDepth, alpha, beta, MinMaxMode.Min, minimizingPlayer); // play again as minimizing player
                 }
                 if (evaluation.score > currentEval.score)
                 {

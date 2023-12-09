@@ -30,7 +30,7 @@ namespace Othello
         public bool showAvailiableMoves = true;
 
         int genBlack = 3;
-        int genWhite = 1;
+        int genWhite = 3;
 
         RandomBot randomBot = new RandomBot();
         BiasedBot biasedBot = new BiasedBot();
@@ -115,14 +115,17 @@ namespace Othello
             }
             gameBoard.MakeMove(new Position(x, y), CurrentState); // makes the move on the gameboard
             PreformAfterMove();
-            SwitchPlayer(); // change players
-            Update();
-            if (IsGameOver())
-                return;
-            if (blackBot && isPlayer1)
-                RunBlackBot();
-            else if (whiteBot && !isPlayer1)
-                RunWhiteBot();
+            if (gameBoard.GetAvailableMoves(OppositeState).Any())
+            {
+                SwitchPlayer(); // change players
+                Update();
+                if (IsGameOver())
+                    return;
+                if (blackBot && isPlayer1)
+                    RunBlackBot();
+                else if (whiteBot && !isPlayer1)
+                    RunWhiteBot();
+            }
         }
 
         private void PreformAfterMove()
@@ -140,7 +143,7 @@ namespace Othello
             {
                 ShowAvailiableMoves(oppAvailableMoves); // show the next players moves
             }
-            float eval = (float)gameBoard.EvaluatePosition(OppositeState, curAvailableMoves.Count);
+            float eval = (float)gameBoard.EvaluatePosition(OppositeState, curAvailableMoves);
             Eval.Text = "Evaluation: " + eval.ToString();
             Moves.Text = "Pieces on the board: " + gameBoard.moves.ToString();
             Time.Text = "Time per move: " + stopwatch.ElapsedMilliseconds.ToString() + " ms";
@@ -229,13 +232,13 @@ namespace Othello
 
         public void DisplayScore()
         {
-            WhiteScore.Text = "White Tiles: " + gameBoard.CountScore(2);
-            BlackScore.Text = "Black Tiles: " + gameBoard.CountScore(1);
+            WhiteScore.Text = "White Tiles: " + gameBoard.CountDiscs(2);
+            BlackScore.Text = "Black Tiles: " + gameBoard.CountDiscs(1);
         }
         public void DisplayVictory()
         {
-            int countWhite = gameBoard.CountScore(2);
-            int countBlack = gameBoard.CountScore(1);
+            int countWhite = gameBoard.CountDiscs(2);
+            int countBlack = gameBoard.CountDiscs(1);
 
             DisplayScore();
 
@@ -317,28 +320,28 @@ namespace Othello
                         break;
                 }
                 label5.Invoke(() =>
-                 {
-                     PreformAfterMove();
-                     if (IsGameOver())
-                         return;
+                {
+                    PreformAfterMove();
+                    if (IsGameOver())
+                        return;
 
-                     if (gameBoard.GetAvailableMoves(OppositeState).Count == 0)
-                     {
-                         Update();
-                         Thread.Sleep(50);
-                         RunWhiteBot();
-                     }
-                     else
-                         SwitchPlayer();
-                     stopwatch.Stop();
+                    if (gameBoard.GetAvailableMoves(OppositeState).Count == 0)
+                    {
+                        Update();
+                        Thread.Sleep(50);
+                        RunWhiteBot();
+                    }
+                    else
+                        SwitchPlayer();
+                    stopwatch.Stop();
 
-                     if (blackBot)
-                     {
-                         Update();
-                         Thread.Sleep(50);
-                         RunBlackBot();
-                     }
-                 });
+                    if (blackBot)
+                    {
+                        Update();
+                        Thread.Sleep(50);
+                        RunBlackBot();
+                    }
+                });
             });
         }
 

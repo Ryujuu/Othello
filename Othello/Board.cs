@@ -1,13 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Othello
+﻿namespace Othello
 {
     public class Board
     {
+        private double[,] squareWeightTable = {
+            {  1.00, -0.36,  0.53, -0.03, -0.03,  0.53, -0.36,  1.00 },
+            { -0.35, -0.69, -0.22, -0.10, -0.10, -0.22, -0.69, -0.36 },
+            {  0.53, -0.22,  0.08,  0.01,  0.01,  0.08, -0.22,  0.53 },
+            { -0.03, -0.10,  0.01,  0.00,  0.00,  0.01, -0.10, -0.03 },
+            { -0.03, -0.10,  0.01,  0.00,  0.00,  0.01, -0.10, -0.03 },
+            {  0.53, -0.22,  0.08,  0.01,  0.01,  0.08, -0.22,  0.53 },
+            { -0.36, -0.69, -0.22, -0.10, -0.10, -0.22, -0.69, -0.36 },
+            {  1.00, -0.36,  0.53, -0.03, -0.03,  0.53, -0.36,  1.00 }
+        };
+        double weightCount = 1;
+        double weightMobility = 5;
+        double weightCorners = 25;
+        double weightEdges = 3;
+        double weightFrontierDiscs = -1;
+        double weightDiaCornerDiscs = -10;
+        double weightBesideCornerDiscs = -5;
+
 
         public static int gridSize = 8;
         public int[,] position = new int[gridSize, gridSize];
@@ -42,7 +54,7 @@ namespace Othello
             moves += 4;
         }
 
-        
+
         public bool StateHasWon(int playerState)
         {
             if (playerState == 1)
@@ -102,113 +114,199 @@ namespace Othello
                 }
             }
         }
-        public double EvaluatePosition(int player, int curPlayersNumberOfMoves)
+        public double EvaluatePosition(int curPlayer, List<Position> curPlayerAvailableMoves)
         {
+            if (IsGameOver())
+            {
+                int winner = DetermineWinner();
+                if (winner == 0)
+                {
+                    return 0;
+                }
+                else
+                {
+                    return winner == curPlayer ? 1000 : -1000;
+                }
+            }
+
+            int oppPlayer = curPlayer == 1 ? 2 : 1;
+            var oppPlayerAvailableMoves = GetAvailableMoves(oppPlayer);
             double eval = 0;
-            
-            if (moves < 64 - AI.maxDepth)
-            {
-                eval = EarlyToMidGameEval(player, eval, curPlayersNumberOfMoves);
-            }
-            else
-            {
-                eval = EndGameEval(player, eval);
-            }
-            return eval;
-        }
-        
-        private double EarlyToMidGameEval(int player, double eval, int curMoves)
-        {
-            // more moves is still valuble but corners and sides are high priority
 
-            int oppositePlayer = player == 1 ? 2 : 1;
-            eval = CountScore(player) - CountScore(oppositePlayer);
+            int count = CountDiscs(curPlayer) - CountDiscs(oppPlayer);
+            int mobility = CountMoves(curPlayerAvailableMoves) - CountMoves(oppPlayerAvailableMoves);
+            int corners = CountCorners(curPlayer) - CountCorners(oppPlayer);
+            int edges = CountEdges(curPlayer) - CountEdges(oppPlayer);
+            int frontier = CountFrontierDiscs(curPlayer) - CountFrontierDiscs(oppPlayer);
+            int diaCorners = CountDiaCorners(curPlayer) - CountDiaCorners(oppPlayer);
+            int besideCorners = CountBesideCorners(curPlayer) - CountBesideCorners(oppPlayer);
+            double discSquareValue = CalculateDiscSquareValue(curPlayer, oppPlayer);
 
-            eval += position[0, 0] == player ? 50 : 0;
-            eval += position[gridSize - 1, gridSize - 1] == player ? 50 : 0;
-            eval += position[0, gridSize - 1] == player ? 50 : 0;
-            eval += position[gridSize - 1, 0] == player ? 50 : 0;
-
-            eval -= position[0, 0] == oppositePlayer ? 50 : 0;
-            eval -= position[gridSize - 1, gridSize - 1] == oppositePlayer ? 50 : 0;
-            eval -= position[0, gridSize - 1] == oppositePlayer ? 50 : 0;
-            eval -= position[gridSize - 1, 0] == oppositePlayer ? 50 : 0;
-
-            int playerTilesOnSides = 0;
-            int oppositeplayerTilesOnSides = 0;
-            for (int x = 1; x < gridSize - 1; x++)
-            {
-                if (position[x, 0] == player)
-                    playerTilesOnSides++;
-                if (position[x, 7] == player)
-                    playerTilesOnSides++;
-
-                if (position[x, 0] == oppositePlayer)
-                    oppositeplayerTilesOnSides++;
-                if (position[x, 7] == oppositePlayer)
-                    oppositeplayerTilesOnSides++;
-            }
-            for (int y = 1; y < gridSize - 1; y++)
-            {
-                if (position[0, y] == player)
-                    playerTilesOnSides++;
-                if (position[7, y] == player)
-                    playerTilesOnSides++;
-
-                if (position[0, y] == oppositePlayer)
-                    oppositeplayerTilesOnSides++;
-                if (position[7, y] == oppositePlayer)
-                    oppositeplayerTilesOnSides++;
-            }
-
-            eval += playerTilesOnSides * 2;
-            eval -= oppositeplayerTilesOnSides * 2;
-
-
-            if (position[0,0] == 0)
-            {
-                eval -= position[1 ,0] == player ? 5 : 0;
-                eval -= position[0, 1] == player ? 5 : 0;
-                eval -= position[1, 1] == player ? 15 : 0;
-            }
-            if (position[7, 0] == 0)
-            {
-                eval -= position[6, 0] == player ? 5 : 0;
-                eval -= position[7, 1] == player ? 5 : 0;
-                eval -= position[6, 1] == player ? 15 : 0;
-            }                                 
-            if (position[0, 7] == 0)          
-            {                                 
-                eval -= position[1, 7] == player ? 5 : 0;
-                eval -= position[0, 6] == player ? 5 : 0;
-                eval -= position[1, 6] == player ? 15 : 0;
-            }                                 
-            if (position[7, 7] == 0)          
-            {                                 
-                eval -= position[6, 7] == player ? 5 : 0;
-                eval -= position[7, 6] == player ? 5 : 0;
-                eval -= position[6, 6] == player ? 15 : 0;
-            }
-
-            eval += curMoves / 2;
-
-            if (StateHasWon(oppositePlayer))
-                eval -= 1000;
-
-            if (StateHasWon(player))
-                eval += 1000;
+            eval = weightCount * count +
+                   weightMobility * mobility +
+                   weightCorners * corners +
+                   weightEdges * edges +
+                   weightFrontierDiscs * frontier +
+                   weightDiaCornerDiscs * diaCorners +
+                   weightBesideCornerDiscs * besideCorners +
+                   discSquareValue;
 
             return eval;
         }
-        private double EndGameEval(int player, double Eval)
-        {
-            // when the depth reaches to the end of the game evaluate only by the score difference
 
-            int oppositePlayer = player == 1 ? 2 : 1;
-            Eval = CountScore(player) - CountScore(oppositePlayer);
-            return Eval;
+
+        public bool IsGameOver()
+        {
+            if (moves == gridSize * gridSize)
+                return true;
+            var availiableMoves = GetAvailableMoves(1);
+            if (!availiableMoves.Any())
+            {
+                availiableMoves = GetAvailableMoves(2);
+                if (!availiableMoves.Any())
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
+        int DetermineWinner()
+        {
+            int countPlayer1 = CountDiscs(1);
+            int countPlayer2 = CountDiscs(2);
+
+            if (countPlayer1 > countPlayer2) return 1;
+            else if (countPlayer2 > countPlayer1) return 2;
+            else return 0; // Draw
+        }
+
+        public int CountDiscs(int player)
+        {
+            int tiles = 0;
+            foreach (var tile in position)
+            {
+                if (tile == player)
+                    tiles++;
+            }
+            return tiles;
+        }
+
+        private int CountMoves(List<Position> availableMoves)
+        {
+            return availableMoves.Count;
+        }
+        private int CountCorners(int player)
+        {
+            int count = 0;
+            int[] corners = { 0, gridSize - 1 };
+            foreach (int x in corners)
+            {
+                foreach (int y in corners)
+                {
+                    if (position[x, y] == player)
+                        count++;
+                }
+            }
+            return count;
+        }
+
+        private int CountEdges(int player)
+        {
+            int count = 0;
+            for (int i = 1; i < gridSize - 1; i++)
+            {
+                foreach (int edge in new[] { 0, gridSize - 1 })
+                {
+                    if (position[i, edge] == player)
+                        count++;
+                    if (position[edge, i] == player)
+                        count++;
+                }
+            }
+            return count;
+        }
+        private int CountFrontierDiscs(int player)
+        {
+            int frontierDiscs = 0;
+            for (int x = 0; x < gridSize; x++)
+            {
+                for (int y = 0; y < gridSize; y++)
+                {
+                    // If the current disc belongs to the player, check if it's a frontier disc
+                    if (position[x, y] == player)
+                    {
+                        // Check all adjacent squares
+                        for (int dx = -1; dx <= 1; dx++)
+                        {
+                            for (int dy = -1; dy <= 1; dy++)
+                            {
+                                int newX = x + dx;
+                                int newY = y + dy;
+                                // Check if the adjacent square is within the board and is empty
+                                if (IsOnBoard(newX, newY) && position[newX, newY] == 0)
+                                {
+                                    frontierDiscs++;
+                                    break; // Move to the next disc once a frontier is found
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return frontierDiscs;
+        }
+
+        private int CountDiaCorners(int player)
+        {
+            int count = 0;
+            count += position[1, 1] == player ? 1 : 0;
+            count += position[gridSize - 1, 1] == player ? 1 : 0;
+            count += position[1, gridSize - 1] == player ? 1 : 0;
+            count += position[gridSize - 1, gridSize - 1] == player ? 1 : 0;
+
+            return count;
+        }
+
+        private int CountBesideCorners(int player)
+        {
+            int count = 0;
+            count += position[0, 1] == player ? 1 : 0;
+            count += position[1, 0] == player ? 1 : 0;
+            count += position[0, gridSize - 2] == player ? 1 : 0;
+            count += position[1, gridSize - 1] == player ? 1 : 0;
+            count += position[gridSize - 2, 0] == player ? 1 : 0;
+            count += position[gridSize - 1, 1] == player ? 1 : 0;
+            count += position[gridSize - 2, gridSize - 1] == player ? 1 : 0;
+            count += position[gridSize - 1, gridSize - 2] == player ? 1 : 0;
+            return count;
+        }
+
+        private double CalculateDiscSquareValue(int player, int oppPlayer)
+        {
+            double value = 0;
+            for (int x = 0; x < 8; x++)
+            {
+                for (int y = 0; y < 8; y++)
+                {
+                    if (position[x, y] == player)
+                    {
+                        value += squareWeightTable[x, y];
+                    }
+                    else if (position[x, y] == oppPlayer)
+                    {
+                        value -= squareWeightTable[x, y];
+                    }
+                }
+            }
+            value *= 5;
+            return value;
+        }
+
+        public bool IsOnBoard(int x, int y)
+        {
+            return x >= 0 && x < gridSize && y >= 0 && y < gridSize;
+        }
 
         public List<Position> GetAvailableMoves(int state)
         {
@@ -222,17 +320,6 @@ namespace Othello
                 }
             }
             return availableMoves;
-        }
-
-        public int CountScore(int n)
-        {
-            int tiles = 0;
-            foreach (var tile in position)
-            {
-                if (tile == n)
-                    tiles++;
-            }
-            return tiles;
         }
 
         public List<Position> GetAffectedDiscs(int x, int y, int nextstate)
@@ -320,22 +407,6 @@ namespace Othello
             }
             return new List<Position>();
 
-        }
-
-        public bool IsGameover()
-        {
-            if (moves == gridSize * gridSize)
-                return true;
-            var availiableMoves = GetAvailableMoves(1);
-            if (!availiableMoves.Any())
-            {
-                availiableMoves = GetAvailableMoves(2);
-                if (!availiableMoves.Any())
-                {
-                    return true;
-                }
-            }
-            return false;
         }
 
         public List<Position> CheckSouth(int x, int y, int state)
