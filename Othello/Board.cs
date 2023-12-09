@@ -24,7 +24,7 @@
         public static int gridSize = 8;
         public int[,] position = new int[gridSize, gridSize];
         private List<Position> possiblePositions = new List<Position>(); // Save postitions that are outside of 3x3 around newly changed pieces
-        public int moves = 0;
+        public int moves = 4;
 
         public Board()
         {
@@ -50,8 +50,6 @@
             AddNeighbours(L, S);
             AddNeighbours(S, S);
             AddNeighbours(L, L);
-
-            moves += 4;
         }
 
 

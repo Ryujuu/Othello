@@ -11,30 +11,31 @@ namespace Othello
     internal class AI
     {
         public int nPositions = 0;
-        public static int maxDepth = 8;
         public int positionsSearched = 0;
         public int movesMade = 4;
         Stopwatch moveStopWatch = new Stopwatch();
         Stopwatch allMovesStopWatch = new Stopwatch();
-        int timeLimit = 1000;
+        int timeLimit = 500;
+        int combindDepth = 0;
 
-        private int[,] boardWeight = {
-        { 100, -10, 11, 6, 6, 11, -10, 100 },
-        { -10, -20, 1, 2, 2, 1, -20, -10},
-        { 10, 1, 5, 4, 4, 5, 1, 10},
-        { 6, 2, 4, 2, 2, 4, 2, 6},
-        { 6, 2, 4, 2, 2, 4, 2, 6 },
-        { 10, 1, 5, 4, 4, 5, 1, 10 },
-        { -10, -20, 1, 2, 2, 1, -20, -10 },
-        { 100, -10, 11, 6, 6, 11, -10, 100 }
+        private double[,] squareWeightTable = {
+            {  1.00, -0.36,  0.53, -0.03, -0.03,  0.53, -0.36,  1.00 },
+            { -0.35, -0.69, -0.22, -0.10, -0.10, -0.22, -0.69, -0.36 },
+            {  0.53, -0.22,  0.08,  0.01,  0.01,  0.08, -0.22,  0.53 },
+            { -0.03, -0.10,  0.01,  0.00,  0.00,  0.01, -0.10, -0.03 },
+            { -0.03, -0.10,  0.01,  0.00,  0.00,  0.01, -0.10, -0.03 },
+            {  0.53, -0.22,  0.08,  0.01,  0.01,  0.08, -0.22,  0.53 },
+            { -0.36, -0.69, -0.22, -0.10, -0.10, -0.22, -0.69, -0.36 },
+            {  1.00, -0.36,  0.53, -0.03, -0.03,  0.53, -0.36,  1.00 }
         };
 
         public void Run(Board gameBoard, int currentState)
         {
             nPositions = 0;
-            movesMade++;
-
+            movesMade = gameBoard.moves;
             var availableMoves = gameBoard.GetAvailableMoves(currentState);
+
+            // Check for no available moves
             if (availableMoves.Count == 0)
                 return;
 
@@ -45,58 +46,55 @@ namespace Othello
             var move = new PositionEvaluationResult();
             Dictionary<int, PositionEvaluationResult> bestMoveAfterCertainDepth = new Dictionary<int, PositionEvaluationResult>();
 
-            while (moveStopWatch.ElapsedMilliseconds < timeLimit && (64 - movesMade) >= allowedDepth)
+            while (moveStopWatch.ElapsedMilliseconds < timeLimit && (64 - movesMade) > allowedDepth)
             {
+                // Prioritize the best move from the last completed depth search
+                if (bestMoveAfterCertainDepth.ContainsKey(allowedDepth - 1))
+                {
+                    var previousBestMove = bestMoveAfterCertainDepth[allowedDepth - 1];
+                    if (availableMoves.Contains(previousBestMove.coordinates))
+                    {
+                        availableMoves.Remove(previousBestMove.coordinates);
+                        availableMoves.Insert(0, previousBestMove.coordinates);
+                    }
+                }
+
                 move = Minimax(gameBoard, 0, allowedDepth, double.MinValue, double.MaxValue, MinMaxMode.Max, currentState, availableMoves);
-                if (moveStopWatch.ElapsedMilliseconds < timeLimit)
+
+                if (moveStopWatch.ElapsedMilliseconds < timeLimit && (64 - movesMade) >= allowedDepth)
                 {
                     bestMoveAfterCertainDepth[allowedDepth] = move;
-                    System.Diagnostics.Debug.WriteLine($"After looking {allowedDepth} moves deep the best move is row {move.coordinates.x + 1}, column {move.coordinates.y + 1}");
+                    System.Diagnostics.Debug.WriteLine($"Depth {allowedDepth}: Best move at ({move.coordinates.x + 1}, {move.coordinates.y + 1})");
                 }
                 allowedDepth += 1;
             }
+
             allMovesStopWatch.Stop();
             moveStopWatch.Stop();
 
+            // Select the best move from the deepest completed search
             int highestCompletedDepth = bestMoveAfterCertainDepth.Keys.Max();
             move = bestMoveAfterCertainDepth[highestCompletedDepth];
 
+            combindDepth += highestCompletedDepth;
+            // Check for a valid move
             if (move.coordinates == null) return;
 
+            // Execute the move
             gameBoard.MakeMove(move.coordinates, currentState);
-
             positionsSearched += nPositions;
+            movesMade++;
 
-            System.Diagnostics.Debug.WriteLine($"On move {movesMade} the bot played row {move.coordinates.x + 1}, column {move.coordinates.y + 1} and {nPositions} positions where searched taking {moveStopWatch.ElapsedMilliseconds}ms");
-            System.Diagnostics.Debug.WriteLine($"The avg number of positions searched per move is {positionsSearched / movesMade} so far at a depth of {move.depth} taking an avg of {allMovesStopWatch.ElapsedMilliseconds / (movesMade - 4)}ms");
-            System.Diagnostics.Debug.WriteLine($"The final eval {move.depth} moves deep is {move.score}");
+            System.Diagnostics.Debug.WriteLine($"Move {movesMade + 1}: Played ({move.coordinates.x + 1}, {move.coordinates.y + 1}). Searched {nPositions} positions in {moveStopWatch.ElapsedMilliseconds}ms.");
+            System.Diagnostics.Debug.WriteLine($"Average positions searched per move: {positionsSearched / movesMade}. Avg depth: {combindDepth/ (movesMade - 4)}, Avg time: {allMovesStopWatch.ElapsedMilliseconds / (movesMade - 4)}ms.");
+            System.Diagnostics.Debug.WriteLine($"Final evaluation at depth {move.depth}: Score = {move.score}");
+
+            moveStopWatch.Reset();
+
             // Print eval results to a json file
             //var json = JsonConvert.SerializeObject(evalResults);
             //File.WriteAllText("ai_dbg.json", json);
             //evalResults.Clear();
-
-            moveStopWatch.Reset();
-        }
-
-        private PositionEvaluationResult ManualFirstDepth(Board gamePosition, int currentDepth, int allowedDepth, int player, int curPlayersNumberOfMoves, List<Position> moves)
-        {
-            List<PositionEvaluationResult> bestToWorstMoves = new List<PositionEvaluationResult>();
-            int oppositePlayer = player == 1 ? 2 : 1;
-            foreach (var move in moves)
-            {
-                Board firstGenBoard = new Board(gamePosition);
-                firstGenBoard.MakeMove(move, player);
-                var newMoves = firstGenBoard.GetAvailableMoves(oppositePlayer);
-                PositionEvaluationResult postion1 = new PositionEvaluationResult();
-                postion1.score = firstGenBoard.EvaluatePosition(oppositePlayer, newMoves);
-                postion1.coordinates = move;
-                bestToWorstMoves.Add(postion1);
-            }
-            var moveToSearch = bestToWorstMoves.OrderByDescending(x => x.score).Select(y => y.coordinates).ToList();
-
-            var evaluation = RunParallel(gamePosition, currentDepth, allowedDepth, player, moveToSearch);
-
-            return evaluation;
         }
 
         public PositionEvaluationResult RunParallel(Board gameBoard, int currentDepth, int allowedDepth, int currentPlayer, List<Position> availableMoves)
@@ -165,24 +163,24 @@ namespace Othello
             PositionEvaluationResult evaluation;
             if (currentDepth == 0)
             {
-                evaluation = ManualFirstDepth(gamePosition, currentDepth, allowedDepth, currentPlayer, availableMoves.Count, availableMoves);
+                evaluation = RunParallel(gamePosition, currentDepth, allowedDepth, currentPlayer, availableMoves);
             }
             else
             {
                 if (minMaxMode == MinMaxMode.Max)
                 {
-                    return MaximizingPlayer(gamePosition, currentDepth, allowedDepth, alpha, beta, currentPlayer, availableMoves);
+                    return Maximizing(gamePosition, currentDepth, allowedDepth, alpha, beta, currentPlayer, availableMoves);
                 }
                 else
                 {
-                    return MinimizingPlayer(gamePosition, currentDepth, allowedDepth, alpha, beta, currentPlayer, availableMoves);
+                    return Minimizing(gamePosition, currentDepth, allowedDepth, alpha, beta, currentPlayer, availableMoves);
                 }
             }
             return evaluation;
 
         }
 
-        private PositionEvaluationResult MaximizingPlayer(Board gamePosition, int depth, int allowedDepth, double alpha, double beta, int maximizingPlayer, List<Position> availableMoves)
+        private PositionEvaluationResult Maximizing(Board gamePosition, int depth, int allowedDepth, double alpha, double beta, int maximizingPlayer, List<Position> availableMoves)
         {
             var minimizingPlayer = maximizingPlayer == 1 ? 2 : 1;
             var evaluation = new PositionEvaluationResult
@@ -219,7 +217,7 @@ namespace Othello
             return evaluation;
         }
 
-        private PositionEvaluationResult MinimizingPlayer(Board gamePosition, int depth, int allowedDepth, double alpha, double beta, int minimizingPlayer, List<Position> availableMoves)
+        private PositionEvaluationResult Minimizing(Board gamePosition, int depth, int allowedDepth, double alpha, double beta, int minimizingPlayer, List<Position> availableMoves)
         {
             var maximizingPlayer = minimizingPlayer == 1 ? 2 : 1;
             var evaluation = new PositionEvaluationResult
@@ -260,7 +258,7 @@ namespace Othello
         private List<Position> OptimizeMoveOrder(List<Position> unsortedMoves)
         {
             // Use LINQ to sort the moves based on their score retrieved from boardWeight
-            var sortedMoves = unsortedMoves.OrderByDescending(move => boardWeight[move.x, move.y]).ToList();
+            var sortedMoves = unsortedMoves.OrderByDescending(move => squareWeightTable[move.x, move.y]).ToList();
 
             return sortedMoves;
         }
