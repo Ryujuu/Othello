@@ -15,7 +15,7 @@ namespace Othello
         public int movesMade = 4;
         Stopwatch moveStopWatch = new Stopwatch();
         Stopwatch allMovesStopWatch = new Stopwatch();
-        int timeLimit = 500;
+        int timeLimit = 1000;
         int combindDepth = 0;
 
         private double[,] squareWeightTable = {
@@ -42,11 +42,11 @@ namespace Othello
             allMovesStopWatch.Start();
             moveStopWatch.Start();
 
-            int allowedDepth = 1;
+            int allowedDepth = 10;
             var move = new PositionEvaluationResult();
             Dictionary<int, PositionEvaluationResult> bestMoveAfterCertainDepth = new Dictionary<int, PositionEvaluationResult>();
 
-            while (moveStopWatch.ElapsedMilliseconds < timeLimit && (64 - movesMade) > allowedDepth)
+            while (moveStopWatch.ElapsedMilliseconds < timeLimit || (64 - movesMade) > allowedDepth)
             {
                 // Prioritize the best move from the last completed depth search
                 if (bestMoveAfterCertainDepth.ContainsKey(allowedDepth - 1))
